@@ -226,6 +226,49 @@ mvn spring-boot:run
 - ✅ **Consultas SQL** sendo executadas
 - ✅ **Validações** de todos os cenários obrigatórios
 
+## 🖥️ TESTE DO CONSOLE H2 - VALIDADO ✅
+
+### Status da Validação:
+✅ **Console H2 acessível** em http://localhost:8080/h2-console  
+✅ **Banco de dados H2 funcionando** com dados persistidos  
+✅ **Todas as tabelas criadas** automaticamente pelo JPA  
+✅ **DataLoader executou com sucesso** inserindo dados de teste  
+✅ **Interface web do H2** disponível para consultas SQL  
+
+### Tabelas Disponíveis no Console:
+- `CLIENTES` - 2 clientes cadastrados
+- `RESTAURANTES` - 2 restaurantes disponíveis  
+- `PRODUTOS` - 4 produtos distribuídos entre os restaurantes
+- `PEDIDOS` - 2 pedidos com diferentes status
+- `ITENS_PEDIDO` - Itens detalhados de cada pedido
+
+### Consultas de Exemplo no Console H2:
+```sql
+-- Listar todos os clientes
+SELECT * FROM CLIENTES;
+
+-- Produtos por restaurante com preços
+SELECT r.NOME as RESTAURANTE, p.NOME as PRODUTO, p.PRECO 
+FROM RESTAURANTES r 
+JOIN PRODUTOS p ON r.ID = p.RESTAURANTE_ID
+ORDER BY r.NOME, p.NOME;
+
+-- Pedidos com informações do cliente
+SELECT c.NOME as CLIENTE, p.DESCRICAO, p.VALOR, p.STATUS, p.DATA_PEDIDO 
+FROM CLIENTES c 
+JOIN PEDIDOS p ON c.ID = p.CLIENTE_ID
+ORDER BY p.DATA_PEDIDO DESC;
+
+-- Relatório de vendas por categoria de produto
+SELECT prod.CATEGORIA, SUM(ip.PRECO_TOTAL) as TOTAL_VENDAS
+FROM PRODUTOS prod
+JOIN ITENS_PEDIDO ip ON prod.ID = ip.PRODUTO_ID
+JOIN PEDIDOS ped ON ip.PEDIDO_ID = ped.ID
+WHERE ped.STATUS = 'ENTREGUE'
+GROUP BY prod.CATEGORIA
+ORDER BY TOTAL_VENDAS DESC;
+```
+
 ---
 
 ## 🎯 RESULTADOS ALCANÇADOS
