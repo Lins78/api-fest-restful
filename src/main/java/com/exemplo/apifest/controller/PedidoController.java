@@ -1,106 +1,124 @@
 package com.exemplo.apifest.controller;
 
-import com.exemplo.apifest.model.Pedido;
-import com.exemplo.apifest.model.Cliente;
-import com.exemplo.apifest.repository.PedidoRepository;
-import com.exemplo.apifest.repository.ClienteRepository;
+import com.exemplo.apifest.dto.ItemPedidoDTO;
+import com.exemplo.apifest.dto.PedidoDTO;
+import com.exemplo.apifest.dto.response.PedidoResponseDTO;
+import com.exemplo.apifest.dto.response.PedidoResumoDTO;
+import com.exemplo.apifest.model.StatusPedido;
+import com.exemplo.apifest.service.PedidoService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
+import jakarta.validation.Valid;
+import java.math.BigDecimal;
 import java.util.List;
-import java.util.Optional;
 
+/**
+ * ===============================================================================
+ * ROTEIRO 4 - CONTROLLER REST DE PEDIDOS (MAIS COMPLEXO)
+ * ===============================================================================
+ * 
+ * Controller responsável por expor endpoints RESTful para gerenciamento de pedidos.
+ * Este é o controller mais crítico, lidando com operações transacionais complexas.
+ * 
+ * ENDPOINTS IMPLEMENTADOS:
+ * - POST   /api/pedidos                    → Criar pedido (transação complexa) (201)
+ * - GET    /api/pedidos/{id}               → Buscar pedido completo (200)
+ * - GET    /api/clientes/{clienteId}/pedidos → Histórico do cliente (200)
+ * - PATCH  /api/pedidos/{id}/status        → Atualizar status (200)
+ * - DELETE /api/pedidos/{id}               → Cancelar pedido (200)
+ * - POST   /api/pedidos/calcular           → Calcular total (200)
+ * 
+ * @author DeliveryTech Development Team
+ * @version 1.0 - Roteiro 4
+ * @since Java 21 LTS + Spring Boot 3.4.0
+ * ===============================================================================
+ */
 @RestController
 @RequestMapping("/api/pedidos")
+@CrossOrigin(origins = "*")
 public class PedidoController {
 
     @Autowired
-    private PedidoRepository pedidoRepository;
-    
-    @Autowired
-    private ClienteRepository clienteRepository;
+    private PedidoService pedidoService;
 
-    @GetMapping
-    public List<Pedido> listarTodos() {
-        return pedidoRepository.findAll();
-    }
-
-    @GetMapping("/ativos")
-    public List<Pedido> listarAtivos() {
-        return pedidoRepository.findByAtivoTrue();
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<Pedido> buscarPorId(@PathVariable Long id) {
-        Optional<Pedido> pedido = pedidoRepository.findById(id);
-        return pedido.map(ResponseEntity::ok)
-                    .orElse(ResponseEntity.notFound().build());
-    }
-
-    @GetMapping("/cliente/{clienteId}")
-    public List<Pedido> buscarPorCliente(@PathVariable Long clienteId) {
-        return pedidoRepository.findByClienteId(clienteId);
-    }
-
+    /**
+     * POST /api/pedidos - Criar novo pedido (OPERAÇÃO MAIS CRÍTICA)
+     * 
+     * EXEMPLO DE REQUEST:
+     * {
+     *   "clienteId": 1,
+     *   "restauranteId": 1,
+     *   "enderecoEntrega": "Rua B, 456",
+     *   "itens": [
+     *     {"produtoId": 1, "quantidade": 2},
+     *     {"produtoId": 2, "quantidade": 1}
+     *   ]
+     * }
+     */
     @PostMapping
-    public ResponseEntity<Pedido> criar(@RequestBody PedidoRequest pedidoRequest) {
-        Optional<Cliente> cliente = clienteRepository.findById(pedidoRequest.getClienteId());
-        if (cliente.isEmpty()) {
-            return ResponseEntity.badRequest().build();
-        }
-        
-        Pedido pedido = new Pedido();
-        pedido.setDescricao(pedidoRequest.getDescricao());
-        pedido.setValor(pedidoRequest.getValor());
-        pedido.setDataPedido(LocalDateTime.now());
-        pedido.setCliente(cliente.get());
-        pedido.setAtivo(true);
-        
-        return ResponseEntity.ok(pedidoRepository.save(pedido));
+    public ResponseEntity<PedidoResponseDTO> criarPedido(@Valid @RequestBody PedidoDTO pedidoDTO) {
+        PedidoResponseDTO pedidoCriado = pedidoService.criarPedido(pedidoDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(pedidoCriado);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Pedido> atualizar(@PathVariable Long id, @RequestBody PedidoRequest pedidoRequest) {
-        return pedidoRepository.findById(id)
-                .map(pedido -> {
-                    pedido.setDescricao(pedidoRequest.getDescricao());
-                    pedido.setValor(pedidoRequest.getValor());
-                    if (pedidoRequest.getClienteId() != null) {
-                        clienteRepository.findById(pedidoRequest.getClienteId())
-                                .ifPresent(pedido::setCliente);
-                    }
-                    return ResponseEntity.ok(pedidoRepository.save(pedido));
-                })
-                .orElse(ResponseEntity.notFound().build());
+    /**
+     * GET /api/pedidos/{id} - Buscar pedido completo com itens
+     */
+    @GetMapping("/{id}")
+    public ResponseEntity<PedidoResponseDTO> buscarPedidoPorId(@PathVariable Long id) {
+        PedidoResponseDTO pedido = pedidoService.buscarPedidoPorId(id);
+        return ResponseEntity.ok(pedido);
     }
 
+    /**
+     * GET /api/clientes/{clienteId}/pedidos - Histórico de pedidos do cliente
+     */
+    @GetMapping("/cliente/{clienteId}")
+    public ResponseEntity<List<PedidoResumoDTO>> buscarPedidosPorCliente(@PathVariable Long clienteId) {
+        List<PedidoResumoDTO> pedidos = pedidoService.buscarPedidosPorCliente(clienteId);
+        return ResponseEntity.ok(pedidos);
+    }
+
+    /**
+     * PATCH /api/pedidos/{id}/status - Atualizar status do pedido
+     * 
+     * EXEMPLO DE REQUEST:
+     * {
+     *   "status": "CONFIRMADO"
+     * }
+     */
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<PedidoResponseDTO> atualizarStatusPedido(
+            @PathVariable Long id,
+            @RequestParam StatusPedido status) {
+        PedidoResponseDTO pedidoAtualizado = pedidoService.atualizarStatusPedido(id, status);
+        return ResponseEntity.ok(pedidoAtualizado);
+    }
+
+    /**
+     * DELETE /api/pedidos/{id} - Cancelar pedido
+     */
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deletar(@PathVariable Long id) {
-        return pedidoRepository.findById(id)
-                .map(pedido -> {
-                    pedido.inativar();
-                    pedidoRepository.save(pedido);
-                    return ResponseEntity.ok().build();
-                })
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<PedidoResponseDTO> cancelarPedido(@PathVariable Long id) {
+        PedidoResponseDTO pedidoCancelado = pedidoService.cancelarPedido(id);
+        return ResponseEntity.ok(pedidoCancelado);
     }
 
-    // Classe auxiliar para receber dados do pedido
-    public static class PedidoRequest {
-        private String descricao;
-        private Double valor;
-        private Long clienteId;
-
-        // Getters e Setters
-        public String getDescricao() { return descricao; }
-        public void setDescricao(String descricao) { this.descricao = descricao; }
-        
-        public Double getValor() { return valor; }
-        public void setValor(Double valor) { this.valor = valor; }
-        
-        public Long getClienteId() { return clienteId; }
-        public void setClienteId(Long clienteId) { this.clienteId = clienteId; }
+    /**
+     * POST /api/pedidos/calcular - Calcular total do pedido sem salvar
+     * 
+     * EXEMPLO DE REQUEST:
+     * [
+     *   {"produtoId": 1, "quantidade": 2},
+     *   {"produtoId": 2, "quantidade": 1}
+     * ]
+     */
+    @PostMapping("/calcular")
+    public ResponseEntity<BigDecimal> calcularTotalPedido(@Valid @RequestBody List<ItemPedidoDTO> itens) {
+        BigDecimal total = pedidoService.calcularTotalPedido(itens);
+        return ResponseEntity.ok(total);
     }
 }

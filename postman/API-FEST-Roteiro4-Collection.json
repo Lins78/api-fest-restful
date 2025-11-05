@@ -1,0 +1,760 @@
+{
+	"info": {
+		"_postman_id": "api-fest-roteiro4-collection",
+		"name": "API FEST RESTful - Roteiro 4 - Services & Controllers",
+		"description": "Collection completa para testar todos os endpoints implementados no Roteiro 4.\n\n🚀 **ROTEIRO 4 - CAMADA DE SERVIÇOS E CONTROLLERS REST**\n\nEsta collection contém todos os cenários de teste obrigatórios para validar:\n- ✅ Cadastro de clientes, restaurantes, produtos e pedidos\n- ✅ Operações CRUD completas\n- ✅ Regras de negócio e validações\n- ✅ Transações complexas\n- ✅ Tratamento de erros\n- ✅ Status codes HTTP corretos\n\n**CENÁRIOS INCLUÍDOS:**\n1. **Clientes**: CRUD + ativação/desativação + busca por email\n2. **Restaurantes**: CRUD + filtros por categoria + cálculo de taxa\n3. **Produtos**: CRUD + filtros + controle de disponibilidade\n4. **Pedidos**: Criação transacional + controle de status + cancelamento\n\n**COMO USAR:**\n1. Execute os testes na ordem das pastas\n2. Verifique os status codes esperados\n3. Confirme as regras de negócio\n4. Teste cenários de erro\n\n**AUTOR:** DeliveryTech Development Team\n**VERSÃO:** 1.0 - Roteiro 4\n**DATA:** 05/11/2025",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1️⃣ CLIENTES - Gerenciamento Completo",
+			"item": [
+				{
+					"name": "✅ Cadastrar Cliente - Sucesso",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nome\": \"João Silva\",\n  \"email\": \"joao@email.com\",\n  \"telefone\": \"11999999999\",\n  \"endereco\": \"Rua A, 123, São Paulo - SP\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/clientes",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"clientes"
+							]
+						}
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status deve ser 201 Created\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Resposta deve conter dados do cliente\", function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response).to.have.property('id');",
+									"    pm.expect(response).to.have.property('nome', 'João Silva');",
+									"    pm.expect(response).to.have.property('email', 'joao@email.com');",
+									"    pm.expect(response).to.have.property('ativo', true);",
+									"    ",
+									"    // Salvar ID para próximos testes",
+									"    pm.globals.set('clienteId', response.id);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "❌ Cadastrar Cliente - Email Duplicado",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nome\": \"Maria Santos\",\n  \"email\": \"joao@email.com\",\n  \"telefone\": \"11888888888\",\n  \"endereco\": \"Rua B, 456, São Paulo - SP\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/clientes",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"clientes"
+							]
+						}
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status deve ser 400 Bad Request\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test(\"Deve retornar erro de email duplicado\", function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.message).to.include('email');",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "✅ Buscar Cliente por ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/clientes/{{clienteId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"clientes",
+								"{{clienteId}}"
+							]
+						}
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status deve ser 200 OK\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Deve retornar dados do cliente\", function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response).to.have.property('nome', 'João Silva');",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "✅ Listar Clientes Ativos",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/clientes",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"clientes"
+							]
+						}
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status deve ser 200 OK\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Deve retornar lista de clientes\", function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response).to.be.an('array');",
+									"    pm.expect(response.length).to.be.greaterThan(0);",
+									"});"
+								]
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "2️⃣ RESTAURANTES - Gestão e Categorias",
+			"item": [
+				{
+					"name": "✅ Cadastrar Restaurante - Sucesso",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nome\": \"Pizzaria do João\",\n  \"cnpj\": \"12.345.678/0001-90\",\n  \"endereco\": \"Av. Paulista, 1000\",\n  \"telefone\": \"1133334444\",\n  \"categoria\": \"PIZZA\",\n  \"taxaEntrega\": 5.90\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/restaurantes",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"restaurantes"
+							]
+						}
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status deve ser 201 Created\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Resposta deve conter dados do restaurante\", function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response).to.have.property('id');",
+									"    pm.expect(response).to.have.property('nome', 'Pizzaria do João');",
+									"    pm.expect(response).to.have.property('categoria', 'PIZZA');",
+									"    pm.expect(response).to.have.property('ativo', true);",
+									"    ",
+									"    pm.globals.set('restauranteId', response.id);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "✅ Buscar Restaurantes por Categoria",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/restaurantes/categoria/PIZZA",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"restaurantes",
+								"categoria",
+								"PIZZA"
+							]
+						}
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status deve ser 200 OK\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Deve retornar restaurantes da categoria\", function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response).to.be.an('array');",
+									"    response.forEach(restaurante => {",
+									"        pm.expect(restaurante.categoria).to.equal('PIZZA');",
+									"    });",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "✅ Calcular Taxa de Entrega",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/restaurantes/{{restauranteId}}/taxa-entrega/01234567",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"restaurantes",
+								"{{restauranteId}}",
+								"taxa-entrega",
+								"01234567"
+							]
+						}
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status deve ser 200 OK\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Deve retornar taxa calculada\", function () {",
+									"    const taxa = pm.response.json();",
+									"    pm.expect(taxa).to.be.a('number');",
+									"    pm.expect(taxa).to.be.greaterThan(0);",
+									"});"
+								]
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "3️⃣ PRODUTOS - Catálogo e Disponibilidade",
+			"item": [
+				{
+					"name": "✅ Cadastrar Produto - Sucesso",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nome\": \"Pizza Margherita\",\n  \"descricao\": \"Pizza tradicional com molho de tomate, mussarela e manjericão\",\n  \"preco\": 32.90,\n  \"categoria\": \"PIZZA\",\n  \"restauranteId\": {{restauranteId}}\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/produtos",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"produtos"
+							]
+						}
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status deve ser 201 Created\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Resposta deve conter dados do produto\", function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response).to.have.property('id');",
+									"    pm.expect(response).to.have.property('nome', 'Pizza Margherita');",
+									"    pm.expect(response).to.have.property('disponivel', true);",
+									"    ",
+									"    pm.globals.set('produtoId', response.id);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "✅ Buscar Produtos por Restaurante",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/produtos/restaurante/{{restauranteId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"produtos",
+								"restaurante",
+								"{{restauranteId}}"
+							]
+						}
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status deve ser 200 OK\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Deve retornar produtos do restaurante\", function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response).to.be.an('array');",
+									"    pm.expect(response.length).to.be.greaterThan(0);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "✅ Alterar Disponibilidade do Produto",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/produtos/{{produtoId}}/disponibilidade?disponivel=false",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"produtos",
+								"{{produtoId}}",
+								"disponibilidade"
+							],
+							"query": [
+								{
+									"key": "disponivel",
+									"value": "false"
+								}
+							]
+						}
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status deve ser 200 OK\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Produto deve ficar indisponível\", function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.disponivel).to.be.false;",
+									"});"
+								]
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "4️⃣ PEDIDOS - Transações Complexas",
+			"item": [
+				{
+					"name": "⚠️ Reativar Produto para Teste",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/produtos/{{produtoId}}/disponibilidade?disponivel=true",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"produtos",
+								"{{produtoId}}",
+								"disponibilidade"
+							],
+							"query": [
+								{
+									"key": "disponivel",
+									"value": "true"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "✅ Criar Pedido Completo - OPERAÇÃO CRÍTICA",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"clienteId\": {{clienteId}},\n  \"restauranteId\": {{restauranteId}},\n  \"enderecoEntrega\": \"Rua B, 456, São Paulo - SP\",\n  \"itens\": [\n    {\n      \"produtoId\": {{produtoId}},\n      \"quantidade\": 2\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/pedidos",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"pedidos"
+							]
+						}
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status deve ser 201 Created\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Pedido deve ter total calculado\", function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response).to.have.property('id');",
+									"    pm.expect(response).to.have.property('total');",
+									"    pm.expect(response).to.have.property('status', 'PENDENTE');",
+									"    pm.expect(response.total).to.be.greaterThan(0);",
+									"    ",
+									"    pm.globals.set('pedidoId', response.id);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "✅ Buscar Pedido Completo",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/pedidos/{{pedidoId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"pedidos",
+								"{{pedidoId}}"
+							]
+						}
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status deve ser 200 OK\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Deve retornar pedido com itens\", function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response).to.have.property('itens');",
+									"    pm.expect(response.itens).to.be.an('array');",
+									"    pm.expect(response.itens.length).to.be.greaterThan(0);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "✅ Atualizar Status do Pedido",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/pedidos/{{pedidoId}}/status?status=CONFIRMADO",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"pedidos",
+								"{{pedidoId}}",
+								"status"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "CONFIRMADO"
+								}
+							]
+						}
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status deve ser 200 OK\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Status do pedido deve ser atualizado\", function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.status).to.equal('CONFIRMADO');",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "✅ Buscar Pedidos por Cliente",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/pedidos/cliente/{{clienteId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"pedidos",
+								"cliente",
+								"{{clienteId}}"
+							]
+						}
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status deve ser 200 OK\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Deve retornar pedidos do cliente\", function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response).to.be.an('array');",
+									"    pm.expect(response.length).to.be.greaterThan(0);",
+									"});"
+								]
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "5️⃣ TESTES DE VALIDAÇÃO E ERROS",
+			"item": [
+				{
+					"name": "❌ Buscar Cliente Inexistente",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/clientes/99999",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"clientes",
+								"99999"
+							]
+						}
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status deve ser 404 Not Found\", function () {",
+									"    pm.response.to.have.status(404);",
+									"});",
+									"",
+									"pm.test(\"Deve retornar mensagem de erro\", function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response).to.have.property('message');",
+									"    pm.expect(response.message).to.include('não encontrado');",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "❌ Cadastrar Cliente com Dados Inválidos",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nome\": \"\",\n  \"email\": \"email-inválido\",\n  \"telefone\": \"\",\n  \"endereco\": \"\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/clientes",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"clientes"
+							]
+						}
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status deve ser 400 Bad Request\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test(\"Deve retornar erros de validação\", function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response).to.have.property('fieldErrors');",
+									"});"
+								]
+							}
+						}
+					]
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080",
+			"type": "string"
+		}
+	]
+}
