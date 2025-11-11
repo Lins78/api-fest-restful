@@ -150,7 +150,6 @@ public class ClienteServiceImpl implements ClienteService {
 
         // 2. REGRA DE NEGÓCIO: Toggle do status
         cliente.setAtivo(!cliente.getAtivo());
-        cliente.setDataAtualizacao(LocalDateTime.now());
 
         // 3. PERSISTÊNCIA: Salvar alteração
         Cliente clienteAtualizado = clienteRepository.save(cliente);

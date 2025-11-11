@@ -6,6 +6,10 @@
 
 O projeto foi atualizado para usar Java 21 LTS (Long Term Support) e está totalmente funcional.
 
+**Data do Upgrade**: 10 de novembro de 2025  
+**Realizado por**: GitHub Copilot  
+**Método**: Upgrade manual com verificação completa de compatibilidade
+
 ## 📋 Resumo das Configurações
 
 ### Java Runtime
