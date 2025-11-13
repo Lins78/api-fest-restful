@@ -6,6 +6,11 @@ import com.exemplo.apifest.dto.response.PedidoResponseDTO;
 import com.exemplo.apifest.dto.response.PedidoResumoDTO;
 import com.exemplo.apifest.model.StatusPedido;
 import com.exemplo.apifest.service.PedidoService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -39,6 +44,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/pedidos")
 @CrossOrigin(origins = "*")
+@Tag(name = "Pedidos", description = "Operações relacionadas ao gerenciamento de pedidos")
 public class PedidoController {
 
     @Autowired
@@ -58,6 +64,13 @@ public class PedidoController {
      *   ]
      * }
      */
+    @Operation(summary = "Criar pedido", 
+               description = "Cria um novo pedido com transação complexa incluindo múltiplos itens")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "201", description = "Pedido criado com sucesso"),
+        @ApiResponse(responseCode = "400", description = "Dados inválidos"),
+        @ApiResponse(responseCode = "404", description = "Cliente ou produto não encontrado")
+    })
     @PostMapping
     public ResponseEntity<PedidoResponseDTO> criarPedido(@Valid @RequestBody PedidoDTO pedidoDTO) {
         PedidoResponseDTO pedidoCriado = pedidoService.criarPedido(pedidoDTO);
@@ -67,8 +80,15 @@ public class PedidoController {
     /**
      * GET /api/pedidos/{id} - Buscar pedido completo com itens
      */
+    @Operation(summary = "Buscar pedido por ID", 
+               description = "Busca um pedido completo incluindo todos os itens")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Pedido encontrado"),
+        @ApiResponse(responseCode = "404", description = "Pedido não encontrado")
+    })
     @GetMapping("/{id}")
-    public ResponseEntity<PedidoResponseDTO> buscarPedidoPorId(@PathVariable Long id) {
+    public ResponseEntity<PedidoResponseDTO> buscarPedidoPorId(
+        @Parameter(description = "ID do pedido") @PathVariable Long id) {
         PedidoResponseDTO pedido = pedidoService.buscarPedidoPorId(id);
         return ResponseEntity.ok(pedido);
     }
@@ -76,8 +96,15 @@ public class PedidoController {
     /**
      * GET /api/clientes/{clienteId}/pedidos - Histórico de pedidos do cliente
      */
+    @Operation(summary = "Buscar pedidos por cliente", 
+               description = "Lista o histórico de pedidos de um cliente específico")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Lista de pedidos retornada com sucesso"),
+        @ApiResponse(responseCode = "404", description = "Cliente não encontrado")
+    })
     @GetMapping("/cliente/{clienteId}")
-    public ResponseEntity<List<PedidoResumoDTO>> buscarPedidosPorCliente(@PathVariable Long clienteId) {
+    public ResponseEntity<List<PedidoResumoDTO>> buscarPedidosPorCliente(
+        @Parameter(description = "ID do cliente") @PathVariable Long clienteId) {
         List<PedidoResumoDTO> pedidos = pedidoService.buscarPedidosPorCliente(clienteId);
         return ResponseEntity.ok(pedidos);
     }
@@ -90,10 +117,17 @@ public class PedidoController {
      *   "status": "CONFIRMADO"
      * }
      */
+    @Operation(summary = "Atualizar status do pedido", 
+               description = "Atualiza o status do pedido (PENDENTE, CONFIRMADO, PREPARANDO, etc.)")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Status atualizado com sucesso"),
+        @ApiResponse(responseCode = "404", description = "Pedido não encontrado"),
+        @ApiResponse(responseCode = "400", description = "Status inválido")
+    })
     @PatchMapping("/{id}/status")
     public ResponseEntity<PedidoResponseDTO> atualizarStatusPedido(
-            @PathVariable Long id,
-            @RequestParam StatusPedido status) {
+            @Parameter(description = "ID do pedido") @PathVariable Long id,
+            @Parameter(description = "Novo status do pedido") @RequestParam StatusPedido status) {
         PedidoResponseDTO pedidoAtualizado = pedidoService.atualizarStatusPedido(id, status);
         return ResponseEntity.ok(pedidoAtualizado);
     }
@@ -101,8 +135,16 @@ public class PedidoController {
     /**
      * DELETE /api/pedidos/{id} - Cancelar pedido
      */
+    @Operation(summary = "Cancelar pedido", 
+               description = "Cancela um pedido existente")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Pedido cancelado com sucesso"),
+        @ApiResponse(responseCode = "404", description = "Pedido não encontrado"),
+        @ApiResponse(responseCode = "400", description = "Pedido não pode ser cancelado")
+    })
     @DeleteMapping("/{id}")
-    public ResponseEntity<PedidoResponseDTO> cancelarPedido(@PathVariable Long id) {
+    public ResponseEntity<PedidoResponseDTO> cancelarPedido(
+        @Parameter(description = "ID do pedido") @PathVariable Long id) {
         PedidoResponseDTO pedidoCancelado = pedidoService.cancelarPedido(id);
         return ResponseEntity.ok(pedidoCancelado);
     }
@@ -116,6 +158,12 @@ public class PedidoController {
      *   {"produtoId": 2, "quantidade": 1}
      * ]
      */
+    @Operation(summary = "Calcular total do pedido", 
+               description = "Calcula o valor total de um pedido sem persistir no banco")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Total calculado com sucesso"),
+        @ApiResponse(responseCode = "400", description = "Lista de itens inválida")
+    })
     @PostMapping("/calcular")
     public ResponseEntity<BigDecimal> calcularTotalPedido(@Valid @RequestBody List<ItemPedidoDTO> itens) {
         BigDecimal total = pedidoService.calcularTotalPedido(itens);

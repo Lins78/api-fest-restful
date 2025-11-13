@@ -1,5 +1,6 @@
 package com.exemplo.apifest.exception;
 
+import com.exemplo.apifest.dto.response.ErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import jakarta.validation.ConstraintViolationException;
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -56,13 +58,8 @@ public class GlobalExceptionHandler {
      * @return 404 Not Found
      */
     @ExceptionHandler(EntityNotFoundException.class)
-    public ResponseEntity<Map<String, Object>> handleEntityNotFound(EntityNotFoundException ex) {
-        Map<String, Object> errorResponse = createErrorResponse(
-            HttpStatus.NOT_FOUND,
-            ex.getMessage(),
-            "Recurso não encontrado"
-        );
-        
+    public ResponseEntity<ErrorResponse> handleEntityNotFound(EntityNotFoundException ex) {
+        ErrorResponse errorResponse = ErrorResponse.notFound(ex.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
     }
 
@@ -80,13 +77,8 @@ public class GlobalExceptionHandler {
      * @return 400 Bad Request
      */
     @ExceptionHandler(BusinessException.class)
-    public ResponseEntity<Map<String, Object>> handleBusinessException(BusinessException ex) {
-        Map<String, Object> errorResponse = createErrorResponse(
-            HttpStatus.BAD_REQUEST,
-            ex.getMessage(),
-            "Regra de negócio violada"
-        );
-        
+    public ResponseEntity<ErrorResponse> handleBusinessException(BusinessException ex) {
+        ErrorResponse errorResponse = ErrorResponse.businessError(ex.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 
@@ -102,24 +94,20 @@ public class GlobalExceptionHandler {
      * @return 400 Bad Request com detalhes dos campos inválidos
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, Object>> handleValidationException(MethodArgumentNotValidException ex) {
-        Map<String, Object> errorResponse = new HashMap<>();
-        errorResponse.put("timestamp", LocalDateTime.now());
-        errorResponse.put("status", HttpStatus.BAD_REQUEST.value());
-        errorResponse.put("error", "Dados inválidos");
-        
+    public ResponseEntity<ErrorResponse> handleValidationException(MethodArgumentNotValidException ex) {
         // Coletando todos os erros de validação
-        Map<String, String> fieldErrors = ex.getBindingResult()
+        List<ErrorResponse.ValidationError> validationErrors = ex.getBindingResult()
                 .getFieldErrors()
                 .stream()
-                .collect(Collectors.toMap(
-                    error -> error.getField(),
-                    error -> error.getDefaultMessage(),
-                    (existing, replacement) -> existing // Manter primeiro erro se houver duplicatas
-                ));
+                .map(error -> new ErrorResponse.ValidationError(
+                        error.getField(),
+                        error.getDefaultMessage(),
+                        error.getRejectedValue() != null ? 
+                                      error.getRejectedValue().toString() : null))
+                .collect(Collectors.toList());
         
-        errorResponse.put("message", "Dados de entrada inválidos");
-        errorResponse.put("fieldErrors", fieldErrors);
+        ErrorResponse errorResponse = ErrorResponse.validationError(
+                "Dados de entrada inválidos", validationErrors);
         
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }

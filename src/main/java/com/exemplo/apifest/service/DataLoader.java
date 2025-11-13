@@ -5,7 +5,6 @@ import com.exemplo.apifest.repository.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -32,7 +31,7 @@ import java.util.List;
  * @since Roteiro 3 - Implementação da Camada de Dados
  */
 @Component
-public class DataLoader implements CommandLineRunner {
+public class DataLoader /* implements CommandLineRunner */ {
 
     /** Logger para acompanhar a execução e debug das operações */
     private static final Logger logger = LoggerFactory.getLogger(DataLoader.class);
@@ -69,7 +68,7 @@ public class DataLoader implements CommandLineRunner {
      * @param args Argumentos da linha de comando (não utilizados)
      * @throws Exception Em caso de erro na carga de dados
      */
-    @Override
+    // @Override - Temporariamente desabilitado para testar Swagger
     public void run(String... args) throws Exception {
         logger.info("🚀 ROTEIRO 3 - Iniciando carga de dados de teste...");
         

@@ -3,6 +3,11 @@ package com.exemplo.apifest.controller;
 import com.exemplo.apifest.dto.ProdutoDTO;
 import com.exemplo.apifest.dto.response.ProdutoResponseDTO;
 import com.exemplo.apifest.service.ProdutoService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -35,6 +40,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/produtos")
 @CrossOrigin(origins = "*")
+@Tag(name = "Produtos", description = "Operações relacionadas ao gerenciamento de produtos")
 public class ProdutoController {
 
     @Autowired
@@ -43,6 +49,13 @@ public class ProdutoController {
     /**
      * POST /api/produtos - Cadastrar novo produto
      */
+    @Operation(summary = "Cadastrar produto", 
+               description = "Cadastra um novo produto no sistema")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "201", description = "Produto cadastrado com sucesso"),
+        @ApiResponse(responseCode = "400", description = "Dados inválidos"),
+        @ApiResponse(responseCode = "404", description = "Restaurante não encontrado")
+    })
     @PostMapping
     public ResponseEntity<ProdutoResponseDTO> cadastrarProduto(@Valid @RequestBody ProdutoDTO produtoDTO) {
         ProdutoResponseDTO produtoCriado = produtoService.cadastrarProduto(produtoDTO);
@@ -52,8 +65,15 @@ public class ProdutoController {
     /**
      * GET /api/produtos/{id} - Buscar produto por ID
      */
+    @Operation(summary = "Buscar produto por ID", 
+               description = "Busca um produto pelo seu ID")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Produto encontrado"),
+        @ApiResponse(responseCode = "404", description = "Produto não encontrado")
+    })
     @GetMapping("/{id}")
-    public ResponseEntity<ProdutoResponseDTO> buscarProdutoPorId(@PathVariable Long id) {
+    public ResponseEntity<ProdutoResponseDTO> buscarProdutoPorId(
+        @Parameter(description = "ID do produto") @PathVariable Long id) {
         ProdutoResponseDTO produto = produtoService.buscarProdutoPorId(id);
         return ResponseEntity.ok(produto);
     }
@@ -61,8 +81,15 @@ public class ProdutoController {
     /**
      * GET /api/restaurantes/{restauranteId}/produtos - Produtos do restaurante
      */
+    @Operation(summary = "Buscar produtos por restaurante", 
+               description = "Lista todos os produtos de um restaurante específico")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Lista de produtos retornada com sucesso"),
+        @ApiResponse(responseCode = "404", description = "Restaurante não encontrado")
+    })
     @GetMapping("/restaurante/{restauranteId}")
-    public ResponseEntity<List<ProdutoResponseDTO>> buscarProdutosPorRestaurante(@PathVariable Long restauranteId) {
+    public ResponseEntity<List<ProdutoResponseDTO>> buscarProdutosPorRestaurante(
+        @Parameter(description = "ID do restaurante") @PathVariable Long restauranteId) {
         List<ProdutoResponseDTO> produtos = produtoService.buscarProdutosPorRestaurante(restauranteId);
         return ResponseEntity.ok(produtos);
     }
@@ -70,9 +97,16 @@ public class ProdutoController {
     /**
      * PUT /api/produtos/{id} - Atualizar produto
      */
+    @Operation(summary = "Atualizar produto", 
+               description = "Atualiza os dados de um produto existente")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Produto atualizado com sucesso"),
+        @ApiResponse(responseCode = "400", description = "Dados inválidos"),
+        @ApiResponse(responseCode = "404", description = "Produto não encontrado")
+    })
     @PutMapping("/{id}")
     public ResponseEntity<ProdutoResponseDTO> atualizarProduto(
-            @PathVariable Long id,
+            @Parameter(description = "ID do produto") @PathVariable Long id,
             @Valid @RequestBody ProdutoDTO produtoDTO) {
         ProdutoResponseDTO produtoAtualizado = produtoService.atualizarProduto(id, produtoDTO);
         return ResponseEntity.ok(produtoAtualizado);
@@ -81,10 +115,16 @@ public class ProdutoController {
     /**
      * PATCH /api/produtos/{id}/disponibilidade - Alterar disponibilidade
      */
+    @Operation(summary = "Alterar disponibilidade do produto", 
+               description = "Altera o status de disponibilidade do produto")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Disponibilidade alterada com sucesso"),
+        @ApiResponse(responseCode = "404", description = "Produto não encontrado")
+    })
     @PatchMapping("/{id}/disponibilidade")
     public ResponseEntity<ProdutoResponseDTO> alterarDisponibilidade(
-            @PathVariable Long id,
-            @RequestParam boolean disponivel) {
+            @Parameter(description = "ID do produto") @PathVariable Long id,
+            @Parameter(description = "Status de disponibilidade") @RequestParam boolean disponivel) {
         ProdutoResponseDTO produtoAtualizado = produtoService.alterarDisponibilidade(id, disponivel);
         return ResponseEntity.ok(produtoAtualizado);
     }
@@ -92,8 +132,14 @@ public class ProdutoController {
     /**
      * GET /api/produtos/categoria/{categoria} - Buscar por categoria
      */
+    @Operation(summary = "Buscar produtos por categoria", 
+               description = "Lista todos os produtos de uma categoria específica")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Lista de produtos retornada com sucesso")
+    })
     @GetMapping("/categoria/{categoria}")
-    public ResponseEntity<List<ProdutoResponseDTO>> buscarProdutosPorCategoria(@PathVariable String categoria) {
+    public ResponseEntity<List<ProdutoResponseDTO>> buscarProdutosPorCategoria(
+        @Parameter(description = "Categoria do produto") @PathVariable String categoria) {
         List<ProdutoResponseDTO> produtos = produtoService.buscarProdutosPorCategoria(categoria);
         return ResponseEntity.ok(produtos);
     }

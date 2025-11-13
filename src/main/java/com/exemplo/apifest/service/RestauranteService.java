@@ -53,6 +53,11 @@ public interface RestauranteService {
     RestauranteResponseDTO buscarRestaurantePorId(Long id);
 
     /**
+     * Busca um restaurante por ID (alias para compatibilidade)
+     */
+    RestauranteResponseDTO buscarPorId(Long id);
+
+    /**
      * Busca restaurantes por categoria específica.
      * 
      * CATEGORIAS VÁLIDAS:
@@ -64,11 +69,21 @@ public interface RestauranteService {
     List<RestauranteResponseDTO> buscarRestaurantesPorCategoria(String categoria);
 
     /**
+     * Busca restaurantes por categoria (alias para compatibilidade)
+     */
+    List<RestauranteResponseDTO> buscarPorCategoria(String categoria);
+
+    /**
      * Lista todos os restaurantes disponíveis (ativos).
      * 
      * @return List<RestauranteResponseDTO> Lista de restaurantes ativos
      */
     List<RestauranteResponseDTO> buscarRestaurantesDisponiveis();
+
+    /**
+     * Lista restaurantes disponíveis (alias para compatibilidade)
+     */
+    List<RestauranteResponseDTO> listarRestaurantesDisponiveis();
 
     /**
      * Atualiza dados de um restaurante existente.

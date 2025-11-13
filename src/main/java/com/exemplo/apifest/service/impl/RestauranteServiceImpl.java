@@ -206,4 +206,19 @@ public class RestauranteServiceImpl implements RestauranteService {
             }
         };
     }
+
+    @Override
+    public RestauranteResponseDTO buscarPorId(Long id) {
+        return buscarRestaurantePorId(id);
+    }
+
+    @Override
+    public List<RestauranteResponseDTO> buscarPorCategoria(String categoria) {
+        return buscarRestaurantesPorCategoria(categoria);
+    }
+
+    @Override
+    public List<RestauranteResponseDTO> listarRestaurantesDisponiveis() {
+        return buscarRestaurantesDisponiveis();
+    }
 }
