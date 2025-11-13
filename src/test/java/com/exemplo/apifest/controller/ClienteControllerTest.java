@@ -129,7 +129,7 @@ class ClienteControllerTest {
         ClienteDTO clienteAtualizado = new ClienteDTO();
         clienteAtualizado.setNome("João Santos");
         clienteAtualizado.setEmail("joao.santos@email.com");
-        clienteAtualizado.setTelefone("11888888888");
+        clienteAtualizado.setTelefone("11988888888");
         clienteAtualizado.setEndereco("Rua B, 456");
 
         ClienteResponseDTO clienteAtualizadoResponse = new ClienteResponseDTO();

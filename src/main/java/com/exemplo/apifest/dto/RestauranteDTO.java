@@ -1,9 +1,9 @@
 package com.exemplo.apifest.dto;
 
-import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import com.exemplo.apifest.validation.ValidCategoria;
+import com.exemplo.apifest.validation.ValidHorarioFuncionamento;
+import com.exemplo.apifest.validation.ValidTelefone;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,18 +13,18 @@ import java.math.BigDecimal;
 /**
  * DTO para criação e atualização de Restaurante
  * 
- * Este DTO contém as validações necessárias para garantir que os dados
- * do restaurante estejam corretos antes de serem processados.
- * 
- * Validações implementadas:
- * - Nome: obrigatório, mínimo 2 caracteres, máximo 100
- * - Categoria: obrigatória, predefinida no sistema
- * - Endereço: obrigatório para localização e cálculo de entrega
- * - Taxa de entrega: deve ser valor positivo ou zero
+ * Este DTO contém validações robustas seguindo os requisitos do Roteiro 6:
+ * - Nome: obrigatório, entre 2 e 100 caracteres
+ * - Categoria: obrigatória, valores permitidos definidos
+ * - Telefone: formato brasileiro válido (10-11 dígitos)
+ * - Endereço: obrigatório para localização
+ * - Taxa de entrega: valor positivo, máximo R$ 50,00
+ * - Tempo de entrega: entre 10 e 120 minutos
+ * - Horário de funcionamento: formato HH:MM-HH:MM
  * 
  * @author DeliveryTech Team
- * @version 1.0
- * @since Roteiro 4 - Camada de Serviços e Controllers REST
+ * @version 2.0
+ * @since Roteiro 6 - Sistema Robusto de Validações
  */
 @Data
 @NoArgsConstructor
@@ -41,11 +41,19 @@ public class RestauranteDTO {
 
     /**
      * Categoria do restaurante
-     * Exemplos: Pizzaria, Hambúrguer, Japonês, Italiano, etc.
+     * Valores permitidos: PIZZA, HAMBURGUER, JAPONESA, ITALIANA, BRASILEIRA, etc.
      */
     @NotBlank(message = "Categoria é obrigatória")
-    @Size(min = 3, max = 50, message = "Categoria deve ter entre 3 e 50 caracteres")
+    @ValidCategoria(message = "Categoria deve ser uma das opções válidas: PIZZA, HAMBURGUER, JAPONESA, ITALIANA, BRASILEIRA, MEXICANA, CHINESA, VEGETARIANA, DOCES, LANCHES")
     private String categoria;
+
+    /**
+     * Telefone do restaurante
+     * Deve seguir formato brasileiro: (11) 99999-9999 ou 11999999999
+     */
+    @NotBlank(message = "Telefone é obrigatório")
+    @ValidTelefone(message = "Telefone deve estar no formato brasileiro válido")
+    private String telefone;
 
     /**
      * Endereço completo do restaurante
@@ -57,9 +65,27 @@ public class RestauranteDTO {
 
     /**
      * Taxa de entrega base do restaurante
-     * Valor mínimo R$ 0,00 (entrega gratuita permitida)
+     * Valor entre R$ 0,00 e R$ 50,00
      */
     @NotNull(message = "Taxa de entrega é obrigatória")
     @DecimalMin(value = "0.0", inclusive = true, message = "Taxa de entrega deve ser maior ou igual a zero")
+    @DecimalMax(value = "50.0", inclusive = true, message = "Taxa de entrega não pode exceder R$ 50,00")
     private BigDecimal taxaEntrega;
+
+    /**
+     * Tempo médio de entrega em minutos
+     * Deve estar entre 10 e 120 minutos
+     */
+    @NotNull(message = "Tempo de entrega é obrigatório")
+    @Min(value = 10, message = "Tempo de entrega deve ser no mínimo 10 minutos")
+    @Max(value = 120, message = "Tempo de entrega não pode exceder 120 minutos")
+    private Integer tempoEntregaMinutos;
+
+    /**
+     * Horário de funcionamento
+     * Formato: HH:MM-HH:MM (ex: 08:00-22:00)
+     */
+    @NotBlank(message = "Horário de funcionamento é obrigatório")
+    @ValidHorarioFuncionamento(message = "Horário deve estar no formato HH:MM-HH:MM")
+    private String horarioFuncionamento;
 }

@@ -1,5 +1,6 @@
 package com.exemplo.apifest.dto;
 
+import com.exemplo.apifest.validation.ValidTelefone;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -47,10 +48,10 @@ public class ClienteDTO {
 
     /**
      * Telefone para contato
-     * Formato esperado: (XX) XXXXX-XXXX
+     * Deve seguir formato brasileiro: (11) 99999-9999 ou 11999999999
      */
     @NotBlank(message = "Telefone é obrigatório")
-    @Size(min = 10, max = 15, message = "Telefone deve ter entre 10 e 15 caracteres")
+    @ValidTelefone(message = "Telefone deve estar no formato brasileiro válido")
     private String telefone;
 
     /**

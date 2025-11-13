@@ -1,5 +1,6 @@
 package com.exemplo.apifest.dto;
 
+import com.exemplo.apifest.validation.ValidCEP;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
@@ -14,18 +15,16 @@ import java.util.List;
 /**
  * DTO para criação de Pedido
  * 
- * Este DTO representa um pedido completo com todos os itens.
- * Contém validações rigorosas para garantir que o pedido seja criado corretamente.
- * 
- * Validações implementadas:
- * - Cliente ID: deve referenciar cliente existente e ativo
- * - Restaurante ID: deve referenciar restaurante existente e ativo
+ * Validações robustas implementadas conforme Roteiro 6:
+ * - Cliente ID: obrigatório (referência validada)
+ * - Restaurante ID: obrigatório (referência validada)
  * - Endereço de entrega: obrigatório para delivery
- * - Itens: lista não vazia com itens válidos
+ * - CEP: formato brasileiro válido para cálculo de taxa
+ * - Itens: lista não vazia com validações individuais
  * 
  * @author DeliveryTech Team
- * @version 1.0
- * @since Roteiro 4 - Camada de Serviços e Controllers REST
+ * @version 2.0
+ * @since Roteiro 6 - Sistema Robusto de Validações
  */
 @Data
 @NoArgsConstructor
@@ -54,6 +53,14 @@ public class PedidoDTO {
     @NotBlank(message = "Endereço de entrega é obrigatório")
     @Size(min = 10, max = 200, message = "Endereço de entrega deve ter entre 10 e 200 caracteres")
     private String enderecoEntrega;
+
+    /**
+     * CEP do endereço de entrega
+     * Obrigatório para cálculo da taxa de entrega
+     */
+    @NotBlank(message = "CEP é obrigatório para calcular a taxa de entrega")
+    @ValidCEP(message = "CEP deve estar no formato válido (12345-678 ou 12345678)")
+    private String cep;
 
     /**
      * Lista de itens do pedido
