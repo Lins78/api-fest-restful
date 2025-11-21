@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import jakarta.validation.Valid;
 import java.math.BigDecimal;
@@ -55,6 +56,7 @@ public class RestauranteController {
      * POST /api/restaurantes - Cadastrar novo restaurante
      */
     @PostMapping
+    @PreAuthorize("hasAuthority('ADMIN')")
     @Operation(summary = "Cadastrar restaurante", 
                description = "Cria um novo restaurante no sistema")
     @ApiResponses(value = {
@@ -87,6 +89,7 @@ public class RestauranteController {
      * GET /api/restaurantes - Listar restaurantes com filtros opcionais
      */
     @GetMapping
+    @PreAuthorize("permitAll()")
     @Operation(summary = "Listar restaurantes", 
                description = "Lista restaurantes com filtros opcionais de categoria e status")
     @ApiResponses(value = {
@@ -121,6 +124,7 @@ public class RestauranteController {
      * GET /api/restaurantes/{id} - Buscar restaurante por ID
      */
     @GetMapping("/{id}")
+    @PreAuthorize("permitAll()")
     @Operation(summary = "Buscar restaurante por ID", 
                description = "Retorna um restaurante específico pelo seu ID")
     @ApiResponses(value = {
@@ -146,6 +150,7 @@ public class RestauranteController {
      * PUT /api/restaurantes/{id} - Atualizar restaurante
      */
     @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('ADMIN') or (hasAuthority('RESTAURANTE') and authentication.principal.restauranteId == #id)")
     @Operation(summary = "Atualizar restaurante", 
                description = "Atualiza completamente um restaurante existente")
     @ApiResponses(value = {
@@ -180,6 +185,7 @@ public class RestauranteController {
      * PATCH /api/restaurantes/{id}/status - Ativar/desativar restaurante
      */
     @PatchMapping("/{id}/status")
+    @PreAuthorize("hasAuthority('ADMIN') or (hasAuthority('RESTAURANTE') and authentication.principal.restauranteId == #id)")
     @Operation(summary = "Alterar status do restaurante", 
                description = "Ativa ou desativa um restaurante")
     @ApiResponses(value = {
@@ -209,6 +215,7 @@ public class RestauranteController {
      * GET /api/restaurantes/categoria/{categoria} - Buscar por categoria
      */
     @GetMapping("/categoria/{categoria}")
+    @PreAuthorize("permitAll()")
     @Operation(summary = "Buscar restaurantes por categoria", 
                description = "Lista restaurantes de uma categoria específica")
     @ApiResponses(value = {
@@ -231,6 +238,7 @@ public class RestauranteController {
      * GET /api/restaurantes/{id}/taxa-entrega/{cep} - Calcular taxa de entrega
      */
     @GetMapping("/{id}/taxa-entrega/{cep}")
+    @PreAuthorize("permitAll()")
     @Operation(summary = "Calcular taxa de entrega", 
                description = "Calcula a taxa de entrega de um restaurante para um CEP específico")
     @ApiResponses(value = {
@@ -259,6 +267,7 @@ public class RestauranteController {
      * GET /api/restaurantes/proximos/{cep} - Restaurantes próximos a um CEP
      */
     @GetMapping("/proximos/{cep}")
+    @PreAuthorize("permitAll()")
     @Operation(summary = "Buscar restaurantes próximos", 
                description = "Lista restaurantes que entregam em um CEP específico")
     @ApiResponses(value = {

@@ -127,4 +127,19 @@ public interface PedidoService {
      * @throws BusinessException Se cancelamento não for permitido
      */
     PedidoResponseDTO cancelarPedido(Long id);
+
+    /**
+     * Verifica se um usuário pode visualizar um pedido específico.
+     * 
+     * REGRAS DE AUTORIZAÇÃO:
+     * - CLIENTE: pode ver apenas seus próprios pedidos
+     * - RESTAURANTE: pode ver pedidos de seus restaurantes
+     * - ENTREGADOR: pode ver pedidos que está entregando
+     * - ADMIN: pode ver todos os pedidos
+     * 
+     * @param pedidoId ID do pedido
+     * @param usuario Usuário logado
+     * @return true se pode ver o pedido, false caso contrário
+     */
+    boolean podeVerPedido(Long pedidoId, Object usuario);
 }

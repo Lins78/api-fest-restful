@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import jakarta.validation.Valid;
 import java.math.BigDecimal;
@@ -72,6 +73,7 @@ public class PedidoController {
         @ApiResponse(responseCode = "404", description = "Cliente ou produto não encontrado")
     })
     @PostMapping
+    @PreAuthorize("hasAuthority('CLIENTE')")
     public ResponseEntity<PedidoResponseDTO> criarPedido(@Valid @RequestBody PedidoDTO pedidoDTO) {
         PedidoResponseDTO pedidoCriado = pedidoService.criarPedido(pedidoDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(pedidoCriado);
@@ -87,6 +89,7 @@ public class PedidoController {
         @ApiResponse(responseCode = "404", description = "Pedido não encontrado")
     })
     @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('ADMIN') or @pedidoService.podeVerPedido(#id, authentication.principal)")
     public ResponseEntity<PedidoResponseDTO> buscarPedidoPorId(
         @Parameter(description = "ID do pedido") @PathVariable Long id) {
         PedidoResponseDTO pedido = pedidoService.buscarPedidoPorId(id);
@@ -103,6 +106,7 @@ public class PedidoController {
         @ApiResponse(responseCode = "404", description = "Cliente não encontrado")
     })
     @GetMapping("/cliente/{clienteId}")
+    @PreAuthorize("hasAuthority('ADMIN') or (hasAuthority('CLIENTE') and authentication.principal.id == #clienteId)")
     public ResponseEntity<List<PedidoResumoDTO>> buscarPedidosPorCliente(
         @Parameter(description = "ID do cliente") @PathVariable Long clienteId) {
         List<PedidoResumoDTO> pedidos = pedidoService.buscarPedidosPorCliente(clienteId);
@@ -125,6 +129,7 @@ public class PedidoController {
         @ApiResponse(responseCode = "400", description = "Status inválido")
     })
     @PatchMapping("/{id}/status")
+    @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('RESTAURANTE')")
     public ResponseEntity<PedidoResponseDTO> atualizarStatusPedido(
             @Parameter(description = "ID do pedido") @PathVariable Long id,
             @Parameter(description = "Novo status do pedido") @RequestParam StatusPedido status) {
@@ -143,6 +148,7 @@ public class PedidoController {
         @ApiResponse(responseCode = "400", description = "Pedido não pode ser cancelado")
     })
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('ADMIN') or @pedidoService.podeVerPedido(#id, authentication.principal)")
     public ResponseEntity<PedidoResponseDTO> cancelarPedido(
         @Parameter(description = "ID do pedido") @PathVariable Long id) {
         PedidoResponseDTO pedidoCancelado = pedidoService.cancelarPedido(id);
@@ -165,6 +171,7 @@ public class PedidoController {
         @ApiResponse(responseCode = "400", description = "Lista de itens inválida")
     })
     @PostMapping("/calcular")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<BigDecimal> calcularTotalPedido(@Valid @RequestBody List<ItemPedidoDTO> itens) {
         BigDecimal total = pedidoService.calcularTotalPedido(itens);
         return ResponseEntity.ok(total);

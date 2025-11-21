@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import jakarta.validation.Valid;
 import java.util.List;
@@ -72,6 +73,7 @@ public class ClienteController {
         @ApiResponse(responseCode = "409", description = "Email já cadastrado")
     })
     @PostMapping
+    @PreAuthorize("permitAll()")
     public ResponseEntity<ClienteResponseDTO> cadastrarCliente(@Valid @RequestBody ClienteDTO clienteDTO) {
         ClienteResponseDTO clienteCriado = clienteService.cadastrarCliente(clienteDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(clienteCriado);
@@ -87,6 +89,7 @@ public class ClienteController {
         @ApiResponse(responseCode = "404", description = "Cliente não encontrado")
     })
     @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('ADMIN') or (hasAuthority('CLIENTE') and authentication.principal.id == #id)")
     public ResponseEntity<ClienteResponseDTO> buscarClientePorId(
         @Parameter(description = "ID do cliente") @PathVariable Long id) {
         ClienteResponseDTO cliente = clienteService.buscarClientePorId(id);
@@ -102,6 +105,7 @@ public class ClienteController {
         @ApiResponse(responseCode = "200", description = "Lista de clientes retornada com sucesso")
     })
     @GetMapping
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<List<ClienteResponseDTO>> listarClientesAtivos() {
         List<ClienteResponseDTO> clientes = clienteService.listarClientesAtivos();
         return ResponseEntity.ok(clientes);
@@ -127,6 +131,7 @@ public class ClienteController {
         @ApiResponse(responseCode = "409", description = "Email já cadastrado por outro cliente")
     })
     @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('ADMIN') or (hasAuthority('CLIENTE') and authentication.principal.id == #id)")
     public ResponseEntity<ClienteResponseDTO> atualizarCliente(
             @Parameter(description = "ID do cliente") @PathVariable Long id,
             @Valid @RequestBody ClienteDTO clienteDTO) {
@@ -144,6 +149,7 @@ public class ClienteController {
         @ApiResponse(responseCode = "404", description = "Cliente não encontrado")
     })
     @PatchMapping("/{id}/status")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<ClienteResponseDTO> ativarDesativarCliente(
         @Parameter(description = "ID do cliente") @PathVariable Long id) {
         ClienteResponseDTO clienteAtualizado = clienteService.ativarDesativarCliente(id);
@@ -160,6 +166,7 @@ public class ClienteController {
         @ApiResponse(responseCode = "404", description = "Cliente não encontrado")
     })
     @GetMapping("/email/{email}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<ClienteResponseDTO> buscarClientePorEmail(
         @Parameter(description = "Email do cliente") @PathVariable String email) {
         ClienteResponseDTO cliente = clienteService.buscarClientePorEmail(email);

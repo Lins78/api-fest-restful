@@ -1,9 +1,5 @@
 package com.exemplo.apifest.validation;
 
-import com.exemplo.apifest.validation.CEPValidator;
-import com.exemplo.apifest.validation.CategoriaValidator;
-import com.exemplo.apifest.validation.HorarioFuncionamentoValidator;
-import com.exemplo.apifest.validation.TelefoneValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

@@ -103,4 +103,16 @@ public interface ProdutoService {
      * @return List<ProdutoResponseDTO> Lista de produtos disponíveis da categoria
      */
     List<ProdutoResponseDTO> buscarProdutosPorCategoria(String categoria);
+
+    /**
+     * Verifica se um produto pertence a um restaurante específico.
+     * 
+     * Método utilizado para autorização - verificar se o usuário RESTAURANTE
+     * possui permissão para modificar o produto.
+     * 
+     * @param produtoId ID do produto
+     * @param restauranteId ID do restaurante
+     * @return true se o produto pertence ao restaurante, false caso contrário
+     */
+    boolean pertenceAoRestaurante(Long produtoId, Long restauranteId);
 }

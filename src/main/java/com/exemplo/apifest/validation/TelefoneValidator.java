@@ -2,17 +2,16 @@ package com.exemplo.apifest.validation;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
-import java.util.regex.Pattern;
 
 /**
  * Implementação do validador de telefone brasileiro
  */
 public class TelefoneValidator implements ConstraintValidator<ValidTelefone, String> {
 
-    // Padrões para telefone brasileiro
-    private static final Pattern TELEFONE_PATTERN = Pattern.compile(
-        "^(?:\\(\\d{2}\\)\\s?)?(?:9?\\d{4}-?\\d{4})$|^\\d{10,11}$"
-    );
+    // Padrões para telefone brasileiro (alternativo - não usado na implementação atual)
+    // private static final Pattern TELEFONE_PATTERN = Pattern.compile(
+    //     "^(?:\\(\\d{2}\\)\\s?)?(?:9?\\d{4}-?\\d{4})$|^\\d{10,11}$"
+    // );
 
     @Override
     public void initialize(ValidTelefone constraintAnnotation) {

@@ -235,7 +235,8 @@ public class PedidoServiceImpl implements PedidoService {
         return switch (statusAtual) {
             case PENDENTE -> novoStatus == StatusPedido.CONFIRMADO || novoStatus == StatusPedido.CANCELADO;
             case CONFIRMADO -> novoStatus == StatusPedido.PREPARANDO || novoStatus == StatusPedido.CANCELADO;
-            case PREPARANDO -> novoStatus == StatusPedido.SAIU_PARA_ENTREGA;
+            case PREPARANDO -> novoStatus == StatusPedido.PRONTO || novoStatus == StatusPedido.CANCELADO;
+            case PRONTO -> novoStatus == StatusPedido.SAIU_PARA_ENTREGA;
             case SAIU_PARA_ENTREGA -> novoStatus == StatusPedido.ENTREGUE;
             case ENTREGUE, CANCELADO -> false; // Estados finais
         };
@@ -295,5 +296,58 @@ public class PedidoServiceImpl implements PedidoService {
         pedidoRepository.save(pedido);
 
         return buscarPedidoPorId(id);
+    }
+
+    /**
+     * ROTEIRO 7 - VERIFICAÇÃO DE AUTORIZAÇÃO PARA VISUALIZAÇÃO DE PEDIDOS
+     * =========================================================================
+     * 
+     * Implementa as regras de autorização para controle de acesso aos pedidos.
+     */
+    @Override
+    public boolean podeVerPedido(Long pedidoId, Object usuario) {
+        if (pedidoId == null || usuario == null) {
+            return false;
+        }
+
+        // Verificar se o usuário é uma instância válida da classe Usuario
+        if (!(usuario instanceof com.exemplo.apifest.model.Usuario)) {
+            return false;
+        }
+
+        com.exemplo.apifest.model.Usuario user = (com.exemplo.apifest.model.Usuario) usuario;
+        
+        // Buscar o pedido
+        var pedidoOpt = pedidoRepository.findById(pedidoId);
+        if (pedidoOpt.isEmpty()) {
+            return false;
+        }
+        
+        Pedido pedido = pedidoOpt.get();
+        
+        // Aplicar regras de autorização baseadas no role
+        switch (user.getRole()) {
+            case ADMIN:
+                // ADMIN pode ver todos os pedidos
+                return true;
+                
+            case CLIENTE:
+                // CLIENTE pode ver apenas seus próprios pedidos
+                return pedido.getCliente().getId().equals(user.getId());
+                
+            case RESTAURANTE:
+                // RESTAURANTE pode ver todos os pedidos (simplificação)
+                // TODO: Implementar lógica específica com relacionamento restaurante-pedido
+                return true;
+                
+            case ENTREGADOR:
+                // ENTREGADOR pode ver pedidos que está entregando
+                // Para simplificação, entregador pode ver pedidos prontos para entrega
+                return pedido.getStatus() == StatusPedido.PRONTO || 
+                       pedido.getStatus() == StatusPedido.ENTREGUE;
+                
+            default:
+                return false;
+        }
     }
 }

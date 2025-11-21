@@ -1,13 +1,20 @@
 package com.exemplo.apifest.config;
 
+import com.exemplo.apifest.security.JwtAuthenticationFilter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -46,7 +53,11 @@ import java.util.List;
  */
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
+
+    @Autowired
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
 
     /**
      * Configuração principal da cadeia de filtros de segurança.
@@ -64,27 +75,37 @@ public class SecurityConfig {
             // Desabilita CSRF para APIs REST (recomendado para APIs stateless)
             .csrf(AbstractHttpConfigurer::disable)
             
+            // ========== Session Management ==========
+            // Configura para stateless (JWT)
+            .sessionManagement(session -> session
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            )
+            
             // ========== Authorization Configuration ==========
             .authorizeHttpRequests(auth -> auth
                 // Endpoints públicos sempre acessíveis
                 .requestMatchers(
+                    "/",                      // Root endpoint
+                    "/api/home",              // Home endpoint
                     "/api/v1/home",           // Health check
                     "/h2-console/**",         // H2 Database console (desenvolvimento)
                     "/actuator/**",           // Spring Boot Actuator endpoints
                     "/swagger-ui/**",         // Swagger UI
                     "/swagger-ui.html",       // Swagger UI página principal
                     "/v3/api-docs/**",        // OpenAPI documentation
-                    "/api-docs/**"            // API documentation
+                    "/api-docs/**",           // API documentation
+                    "/api/auth/login",        // Endpoint de login
+                    "/api/auth/register",     // Endpoint de registro
+                    "/api/restaurantes",      // Listar restaurantes (público)
+                    "/api/produtos"           // Listar produtos (público)
                 ).permitAll()
-                
-                // ========== MODO DESENVOLVIMENTO ==========
-                // TEMPORÁRIO: Permite acesso a todos os endpoints da API
-                // TODO ROTEIRO 5 AVANÇADO: Implementar autenticação JWT
-                .requestMatchers("/api/**", "/api/v1/**").permitAll()
                 
                 // Qualquer outra requisição requer autenticação
                 .anyRequest().authenticated()
             )
+            
+            // ========== JWT Filter ==========
+            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
             
             // ========== Headers de Segurança ==========
             .headers(headers -> headers
@@ -157,5 +178,13 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    /**
+     * Bean do AuthenticationManager para autenticação JWT.
+     */
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
     }
 }

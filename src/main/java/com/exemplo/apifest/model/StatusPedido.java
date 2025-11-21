@@ -21,6 +21,9 @@ public enum StatusPedido {
     /** Status quando o restaurante está preparando os itens do pedido */
     PREPARANDO("Preparando"),
     
+    /** Status quando o pedido está pronto para retirada/entrega */
+    PRONTO("Pronto"),
+    
     /** Status quando o pedido saiu do restaurante para entrega */
     SAIU_PARA_ENTREGA("Saiu para Entrega"),
     

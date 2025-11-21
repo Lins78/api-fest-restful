@@ -243,4 +243,21 @@ public class ProdutoServiceImpl implements ProdutoService {
             .map(produto -> modelMapper.map(produto, ProdutoResponseDTO.class))
             .collect(Collectors.toList());
     }
+
+    /**
+     * ROTEIRO 7 - VERIFICAÇÃO DE PROPRIEDADE PARA AUTORIZAÇÃO
+     * =========================================================================
+     * 
+     * Verifica se um produto pertence a um restaurante específico.
+     * Utilizado pelo sistema de autorização para validar permissões.
+     */
+    @Override
+    public boolean pertenceAoRestaurante(Long produtoId, Long restauranteId) {
+        if (produtoId == null || restauranteId == null) {
+            return false;
+        }
+        
+        Optional<Produto> produto = produtoRepository.findById(produtoId);
+        return produto.isPresent() && produto.get().getRestaurante().getId().equals(restauranteId);
+    }
 }

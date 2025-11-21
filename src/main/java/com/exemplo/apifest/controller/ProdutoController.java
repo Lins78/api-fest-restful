@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import jakarta.validation.Valid;
 import java.util.List;
@@ -57,6 +58,7 @@ public class ProdutoController {
         @ApiResponse(responseCode = "404", description = "Restaurante não encontrado")
     })
     @PostMapping
+    @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('RESTAURANTE')")
     public ResponseEntity<ProdutoResponseDTO> cadastrarProduto(@Valid @RequestBody ProdutoDTO produtoDTO) {
         ProdutoResponseDTO produtoCriado = produtoService.cadastrarProduto(produtoDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(produtoCriado);
@@ -72,6 +74,7 @@ public class ProdutoController {
         @ApiResponse(responseCode = "404", description = "Produto não encontrado")
     })
     @GetMapping("/{id}")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<ProdutoResponseDTO> buscarProdutoPorId(
         @Parameter(description = "ID do produto") @PathVariable Long id) {
         ProdutoResponseDTO produto = produtoService.buscarProdutoPorId(id);
@@ -88,6 +91,7 @@ public class ProdutoController {
         @ApiResponse(responseCode = "404", description = "Restaurante não encontrado")
     })
     @GetMapping("/restaurante/{restauranteId}")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<List<ProdutoResponseDTO>> buscarProdutosPorRestaurante(
         @Parameter(description = "ID do restaurante") @PathVariable Long restauranteId) {
         List<ProdutoResponseDTO> produtos = produtoService.buscarProdutosPorRestaurante(restauranteId);
@@ -105,6 +109,7 @@ public class ProdutoController {
         @ApiResponse(responseCode = "404", description = "Produto não encontrado")
     })
     @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('ADMIN') or (hasAuthority('RESTAURANTE') and @produtoService.pertenceAoRestaurante(#id, authentication.principal.restauranteId))")
     public ResponseEntity<ProdutoResponseDTO> atualizarProduto(
             @Parameter(description = "ID do produto") @PathVariable Long id,
             @Valid @RequestBody ProdutoDTO produtoDTO) {
@@ -122,6 +127,7 @@ public class ProdutoController {
         @ApiResponse(responseCode = "404", description = "Produto não encontrado")
     })
     @PatchMapping("/{id}/disponibilidade")
+    @PreAuthorize("hasAuthority('ADMIN') or (hasAuthority('RESTAURANTE') and @produtoService.pertenceAoRestaurante(#id, authentication.principal.restauranteId))")
     public ResponseEntity<ProdutoResponseDTO> alterarDisponibilidade(
             @Parameter(description = "ID do produto") @PathVariable Long id,
             @Parameter(description = "Status de disponibilidade") @RequestParam boolean disponivel) {
@@ -138,6 +144,7 @@ public class ProdutoController {
         @ApiResponse(responseCode = "200", description = "Lista de produtos retornada com sucesso")
     })
     @GetMapping("/categoria/{categoria}")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<List<ProdutoResponseDTO>> buscarProdutosPorCategoria(
         @Parameter(description = "Categoria do produto") @PathVariable String categoria) {
         List<ProdutoResponseDTO> produtos = produtoService.buscarProdutosPorCategoria(categoria);
