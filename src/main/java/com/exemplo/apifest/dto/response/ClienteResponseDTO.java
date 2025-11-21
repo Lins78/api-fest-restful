@@ -1,9 +1,5 @@
 package com.exemplo.apifest.dto.response;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 /**
  * DTO de resposta para Cliente
  * 
@@ -20,9 +16,6 @@ import lombok.NoArgsConstructor;
  * @version 1.0
  * @since Roteiro 4 - Camada de Serviços e Controllers REST
  */
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class ClienteResponseDTO {
 
     /**
@@ -54,4 +47,53 @@ public class ClienteResponseDTO {
      * Indica se o cliente está ativo no sistema
      */
     private Boolean ativo;
+
+    // Getters e Setters
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getNome() {
+        return nome;
+    }
+
+    public void setNome(String nome) {
+        this.nome = nome;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getTelefone() {
+        return telefone;
+    }
+
+    public void setTelefone(String telefone) {
+        this.telefone = telefone;
+    }
+
+    public String getEndereco() {
+        return endereco;
+    }
+
+    public void setEndereco(String endereco) {
+        this.endereco = endereco;
+    }
+
+    public Boolean getAtivo() {
+        return ativo;
+    }
+
+    public void setAtivo(Boolean ativo) {
+        this.ativo = ativo;
+    }
 }

@@ -107,40 +107,40 @@ public class ErrorResponse {
      * Cria uma resposta de erro simples
      */
     public static ErrorResponse of(int status, String error, String message, String path) {
-        return ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(status)
-                .error(error)
-                .message(message)
-                .path(path)
-                .build();
+        ErrorResponse response = new ErrorResponse();
+        response.setTimestamp(LocalDateTime.now());
+        response.setStatus(status);
+        response.setError(error);
+        response.setMessage(message);
+        response.setPath(path);
+        return response;
     }
 
     /**
      * Cria uma resposta de erro com detalhes
      */
     public static ErrorResponse of(int status, String error, String message, String path, Map<String, String> details) {
-        return ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(status)
-                .error(error)
-                .message(message)
-                .path(path)
-                .details(details)
-                .build();
+        ErrorResponse response = new ErrorResponse();
+        response.setTimestamp(LocalDateTime.now());
+        response.setStatus(status);
+        response.setError(error);
+        response.setMessage(message);
+        response.setPath(path);
+        response.setDetails(details);
+        return response;
     }
 
     /**
      * Cria uma resposta de erro de validação (compatibilidade)
      */
     public static ErrorResponse validationError(String message, List<ValidationError> validationErrors) {
-        return ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(400)
-                .error("Bad Request")
-                .message(message)
-                .validationErrors(validationErrors)
-                .build();
+        ErrorResponse response = new ErrorResponse();
+        response.setTimestamp(LocalDateTime.now());
+        response.setStatus(400);
+        response.setError("Bad Request");
+        response.setMessage(message);
+        response.setValidationErrors(validationErrors);
+        return response;
     }
 
     /**

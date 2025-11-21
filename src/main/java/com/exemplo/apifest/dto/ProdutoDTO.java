@@ -2,9 +2,6 @@ package com.exemplo.apifest.dto;
 
 import com.exemplo.apifest.validation.ValidCategoria;
 import jakarta.validation.constraints.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
@@ -22,9 +19,6 @@ import java.math.BigDecimal;
  * @version 2.0
  * @since Roteiro 6 - Sistema Robusto de Validações
  */
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class ProdutoDTO {
 
     /**
@@ -66,4 +60,45 @@ public class ProdutoDTO {
      */
     @NotNull(message = "Restaurante ID é obrigatório")
     private Long restauranteId;
+
+    // Getters e Setters
+    public String getNome() {
+        return nome;
+    }
+
+    public void setNome(String nome) {
+        this.nome = nome;
+    }
+
+    public BigDecimal getPreco() {
+        return preco;
+    }
+
+    public void setPreco(BigDecimal preco) {
+        this.preco = preco;
+    }
+
+    public String getCategoria() {
+        return categoria;
+    }
+
+    public void setCategoria(String categoria) {
+        this.categoria = categoria;
+    }
+
+    public String getDescricao() {
+        return descricao;
+    }
+
+    public void setDescricao(String descricao) {
+        this.descricao = descricao;
+    }
+
+    public Long getRestauranteId() {
+        return restauranteId;
+    }
+
+    public void setRestauranteId(Long restauranteId) {
+        this.restauranteId = restauranteId;
+    }
 }

@@ -1,12 +1,9 @@
 package com.exemplo.apifest.dto;
 
 import com.exemplo.apifest.validation.ValidCategoria;
-import com.exemplo.apifest.validation.ValidHorarioFuncionamento;
 import com.exemplo.apifest.validation.ValidTelefone;
+import com.exemplo.apifest.validation.ValidHorarioFuncionamento;
 import jakarta.validation.constraints.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
@@ -26,9 +23,6 @@ import java.math.BigDecimal;
  * @version 2.0
  * @since Roteiro 6 - Sistema Robusto de Validações
  */
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class RestauranteDTO {
 
     /**
@@ -88,4 +82,61 @@ public class RestauranteDTO {
     @NotBlank(message = "Horário de funcionamento é obrigatório")
     @ValidHorarioFuncionamento(message = "Horário deve estar no formato HH:MM-HH:MM")
     private String horarioFuncionamento;
+
+    // Getters e Setters
+    public String getNome() {
+        return nome;
+    }
+
+    public void setNome(String nome) {
+        this.nome = nome;
+    }
+
+    public String getCategoria() {
+        return categoria;
+    }
+
+    public void setCategoria(String categoria) {
+        this.categoria = categoria;
+    }
+
+    public String getTelefone() {
+        return telefone;
+    }
+
+    public void setTelefone(String telefone) {
+        this.telefone = telefone;
+    }
+
+    public String getEndereco() {
+        return endereco;
+    }
+
+    public void setEndereco(String endereco) {
+        this.endereco = endereco;
+    }
+
+    public BigDecimal getTaxaEntrega() {
+        return taxaEntrega;
+    }
+
+    public void setTaxaEntrega(BigDecimal taxaEntrega) {
+        this.taxaEntrega = taxaEntrega;
+    }
+
+    public Integer getTempoEntregaMinutos() {
+        return tempoEntregaMinutos;
+    }
+
+    public void setTempoEntregaMinutos(Integer tempoEntregaMinutos) {
+        this.tempoEntregaMinutos = tempoEntregaMinutos;
+    }
+
+    public String getHorarioFuncionamento() {
+        return horarioFuncionamento;
+    }
+
+    public void setHorarioFuncionamento(String horarioFuncionamento) {
+        this.horarioFuncionamento = horarioFuncionamento;
+    }
 }

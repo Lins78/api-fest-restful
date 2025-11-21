@@ -57,34 +57,40 @@ public class ApiResponse<T> {
      * Cria uma resposta de sucesso com dados
      */
     public static <T> ApiResponse<T> success(T data) {
-        return new ApiResponse<>(true, data, "Operação realizada com sucesso", LocalDateTime.now(), null);
+        ApiResponse<T> response = new ApiResponse<>(true, data, "Operação realizada com sucesso");
+        return response;
     }
 
     /**
      * Cria uma resposta de sucesso com dados e mensagem customizada
      */
     public static <T> ApiResponse<T> success(T data, String message) {
-        return new ApiResponse<>(true, data, message, LocalDateTime.now(), null);
+        ApiResponse<T> response = new ApiResponse<>(true, data, message);
+        return response;
     }
 
     /**
      * Cria uma resposta de sucesso sem dados
      */
     public static <T> ApiResponse<T> success(String message) {
-        return new ApiResponse<>(true, null, message, LocalDateTime.now(), null);
+        ApiResponse<T> response = new ApiResponse<>(true, null, message);
+        return response;
     }
 
     /**
      * Cria uma resposta de erro
      */
     public static <T> ApiResponse<T> error(String message) {
-        return new ApiResponse<>(false, null, message, LocalDateTime.now(), null);
+        ApiResponse<T> response = new ApiResponse<>(false, null, message);
+        return response;
     }
 
     /**
      * Cria uma resposta de erro com dados de erro
      */
     public static <T> ApiResponse<T> error(String message, Object errorData) {
-        return new ApiResponse<>(false, null, message, LocalDateTime.now(), errorData);
+        ApiResponse<T> response = new ApiResponse<>(false, null, message);
+        response.setErrorData(errorData);
+        return response;
     }
 }

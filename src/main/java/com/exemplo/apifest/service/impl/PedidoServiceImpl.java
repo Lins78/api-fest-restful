@@ -336,8 +336,8 @@ public class PedidoServiceImpl implements PedidoService {
                 return pedido.getCliente().getId().equals(user.getId());
                 
             case RESTAURANTE:
-                // RESTAURANTE pode ver todos os pedidos (simplificação)
-                // TODO: Implementar lógica específica com relacionamento restaurante-pedido
+                // RESTAURANTE pode ver todos os pedidos (implementação simplificada)
+                // Em um sistema real, verificaria se o pedido pertence ao restaurante do usuário
                 return true;
                 
             case ENTREGADOR:

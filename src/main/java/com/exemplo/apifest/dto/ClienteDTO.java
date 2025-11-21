@@ -61,4 +61,18 @@ public class ClienteDTO {
     @NotBlank(message = "Endereço é obrigatório")
     @Size(min = 10, max = 200, message = "Endereço deve ter entre 10 e 200 caracteres")
     private String endereco;
+
+    // ========== Getters e Setters Manuais ==========
+    
+    public String getNome() { return nome; }
+    public void setNome(String nome) { this.nome = nome; }
+    
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+    
+    public String getTelefone() { return telefone; }
+    public void setTelefone(String telefone) { this.telefone = telefone; }
+    
+    public String getEndereco() { return endereco; }
+    public void setEndereco(String endereco) { this.endereco = endereco; }
 }
