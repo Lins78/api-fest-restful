@@ -170,4 +170,33 @@ public class ErrorResponse {
     public static ErrorResponse internalServerError(String message, String path) {
         return of(500, "Internal Server Error", message, path);
     }
+
+    // Setters manuais para garantir compatibilidade
+    public void setTimestamp(LocalDateTime timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    public void setStatus(Integer status) {
+        this.status = status;
+    }
+
+    public void setError(String error) {
+        this.error = error;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public void setPath(String path) {
+        this.path = path;
+    }
+
+    public void setDetails(Map<String, String> details) {
+        this.details = details;
+    }
+
+    public void setValidationErrors(List<ValidationError> validationErrors) {
+        this.validationErrors = validationErrors;
+    }
 }

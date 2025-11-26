@@ -129,4 +129,12 @@ public class ItemPedido {
             this.precoTotal = this.precoUnitario.multiply(BigDecimal.valueOf(this.quantidade));
         }
     }
+
+    /**
+     * Método alias para getPrecoTotal() - usado em testes
+     * Retorna o subtotal do item (quantidade * preço unitário)
+     */
+    public BigDecimal getSubTotal() {
+        return getPrecoTotal();
+    }
 }

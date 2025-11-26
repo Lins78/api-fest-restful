@@ -80,7 +80,7 @@ Write-Info "Testando conexão com PostgreSQL..."
 
 # Testa conexão
 try {
-    $connectionTest = & psql -h localhost -U postgres -d postgres -c "SELECT version();" 2>$null
+    & psql -h localhost -U postgres -d postgres -c "SELECT version();" 2>$null
     if ($LASTEXITCODE -eq 0) {
         Write-Success "Conexão com PostgreSQL estabelecida com sucesso"
     } else {

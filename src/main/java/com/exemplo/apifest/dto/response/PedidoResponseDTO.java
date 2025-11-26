@@ -72,4 +72,32 @@ public class PedidoResponseDTO {
      * Lista de itens do pedido com detalhes completos
      */
     private List<ItemPedidoResponseDTO> itens;
+    
+    // Getters e Setters manuais devido ao problema do Lombok
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    
+    public LocalDateTime getDataPedido() { return dataPedido; }
+    public void setDataPedido(LocalDateTime dataPedido) { this.dataPedido = dataPedido; }
+    
+    public StatusPedido getStatus() { return status; }
+    public void setStatus(StatusPedido status) { this.status = status; }
+    
+    public BigDecimal getValor() { return valor; }
+    public void setValor(BigDecimal valor) { this.valor = valor; }
+    
+    public String getEnderecoEntrega() { return enderecoEntrega; }
+    public void setEnderecoEntrega(String enderecoEntrega) { this.enderecoEntrega = enderecoEntrega; }
+    
+    public String getObservacoes() { return observacoes; }
+    public void setObservacoes(String observacoes) { this.observacoes = observacoes; }
+    
+    public ClienteResponseDTO getCliente() { return cliente; }
+    public void setCliente(ClienteResponseDTO cliente) { this.cliente = cliente; }
+    
+    public RestauranteResponseDTO getRestaurante() { return restaurante; }
+    public void setRestaurante(RestauranteResponseDTO restaurante) { this.restaurante = restaurante; }
+    
+    public List<ItemPedidoResponseDTO> getItens() { return itens; }
+    public void setItens(List<ItemPedidoResponseDTO> itens) { this.itens = itens; }
 }

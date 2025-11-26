@@ -93,4 +93,9 @@ public class ApiResponse<T> {
         response.setErrorData(errorData);
         return response;
     }
+
+    // Setter manual para garantir compatibilidade
+    public void setErrorData(Object errorData) {
+        this.errorData = errorData;
+    }
 }

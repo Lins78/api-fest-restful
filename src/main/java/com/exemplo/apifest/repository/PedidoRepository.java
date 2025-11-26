@@ -5,8 +5,11 @@ import com.exemplo.apifest.model.StatusPedido;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -119,4 +122,29 @@ public interface PedidoRepository extends JpaRepository<Pedido, Long> {
      */
     @Query("SELECT c.nome, COUNT(p) FROM Pedido p JOIN p.cliente c WHERE p.ativo = true GROUP BY c.id, c.nome ORDER BY COUNT(p) DESC")
     List<Object[]> rankingClientesPorNumeroPedidos();
+
+    // ========== MÉTODOS ADICIONAIS PARA TESTES ==========
+
+    /**
+     * Busca pedidos de um cliente ordenados por data (mais recentes primeiro)
+     * Com suporte a paginação
+     */
+    Page<Pedido> findByClienteIdOrderByDataPedidoDesc(Long clienteId, Pageable pageable);
+
+    /**
+     * Conta pedidos por status
+     */
+    Long countByStatus(StatusPedido status);
+
+    /**
+     * Calcula total de vendas em um período
+     */
+    @Query("SELECT COALESCE(SUM(p.valor), 0) FROM Pedido p WHERE p.dataPedido BETWEEN :inicio AND :fim AND p.status = 'ENTREGUE'")
+    BigDecimal calcularTotalVendasPeriodo(@Param("inicio") LocalDateTime inicio, @Param("fim") LocalDateTime fim);
+
+    /**
+     * Calcula tempo médio de preparação em minutos
+     */
+    @Query("SELECT AVG(TIMESTAMPDIFF(MINUTE, p.dataPedido, p.dataPedido)) FROM Pedido p WHERE p.status = 'ENTREGUE'")
+    Double calcularTempoMedioPreparacao();
 }

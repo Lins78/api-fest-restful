@@ -44,6 +44,15 @@ public interface RestauranteService {
     RestauranteResponseDTO cadastrarRestaurante(RestauranteDTO dto);
 
     /**
+     * Método alias para cadastrarRestaurante() - usado em testes
+     * 
+     * @param dto Dados do restaurante para criação
+     * @return RestauranteResponseDTO com dados do restaurante criado
+     * @throws BusinessException se alguma validação de negócio falhar
+     */
+    RestauranteResponseDTO criarRestaurante(RestauranteDTO dto);
+
+    /**
      * Busca um restaurante por ID com validação de existência.
      * 
      * @param id ID do restaurante a ser buscado

@@ -41,6 +41,12 @@ public class RegisterRequest {
 
     public RegisterRequest() {}
 
+    public RegisterRequest(String nome, String email, String senha) {
+        this.nome = nome;
+        this.email = email;
+        this.senha = senha;
+    }
+
     public RegisterRequest(String nome, String email, String senha, Role role) {
         this.nome = nome;
         this.email = email;

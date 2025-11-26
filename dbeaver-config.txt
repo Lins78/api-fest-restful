@@ -1,0 +1,84 @@
+# =====================================================================
+# CONFIGURAÇÕES DO DBEAVER PARA API FEST RESTFUL
+# =====================================================================
+# Arquivo de configuração para conexões de banco de dados
+# Importe este arquivo no DBeaver para configuração automática
+# =====================================================================
+
+# ========== CONEXÃO H2 - DESENVOLVIMENTO ==========
+[H2-Desenvolvimento]
+driver=H2 Embedded
+url=jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+host=localhost
+port=8080
+database=testdb
+user=sa
+password=
+description=Banco H2 em memória para desenvolvimento
+console.url=http://localhost:8080/h2-console
+
+# Configurações específicas H2
+h2.console.enabled=true
+h2.console.path=/h2-console
+h2.console.settings.web-allow-others=true
+
+# ========== CONEXÃO POSTGRESQL - PRODUÇÃO ==========
+[PostgreSQL-Producao]
+driver=PostgreSQL
+url=jdbc:postgresql://localhost:5432/api_fest_db
+host=localhost
+port=5432
+database=api_fest_db
+user=postgres
+password=senha123
+description=Banco PostgreSQL para produção
+schema=public
+
+# Configurações de pool
+connection.pool.min=5
+connection.pool.max=20
+connection.pool.timeout=20000
+
+# ========== INSTRUÇÕES DE USO ==========
+# 1. Abra o DBeaver
+# 2. Vá em File > Import > General > Preferences
+# 3. Selecione este arquivo
+# 4. Configure as senhas conforme seu ambiente
+# 
+# Para H2 (Desenvolvimento):
+# - Execute a aplicação Spring Boot
+# - Acesse: http://localhost:8080/h2-console
+# - Use as credenciais: sa / (senha vazia)
+#
+# Para PostgreSQL (Produção):
+# - Instale o PostgreSQL
+# - Execute o script setup-postgresql.sql
+# - Configure as credenciais no application-prod.properties
+# =====================================================================
+
+# Queries úteis para teste:
+
+# Verificar todas as tabelas
+SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';
+
+# Verificar dados de clientes
+SELECT * FROM cliente LIMIT 10;
+
+# Verificar dados de restaurantes
+SELECT * FROM restaurante LIMIT 10;
+
+# Verificar pedidos recentes
+SELECT p.*, c.nome as cliente_nome, r.nome as restaurante_nome 
+FROM pedido p 
+JOIN cliente c ON p.cliente_id = c.id 
+JOIN restaurante r ON p.restaurante_id = r.id 
+ORDER BY p.data_pedido DESC 
+LIMIT 10;
+
+# Verificar produtos por categoria
+SELECT categoria, COUNT(*) as total_produtos 
+FROM produto 
+GROUP BY categoria;
+
+# Verificar usuários do sistema
+SELECT username, enabled, created_at FROM usuario;

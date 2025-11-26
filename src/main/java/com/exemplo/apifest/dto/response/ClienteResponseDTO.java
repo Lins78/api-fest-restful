@@ -1,5 +1,7 @@
 package com.exemplo.apifest.dto.response;
 
+import java.time.LocalDateTime;
+
 /**
  * DTO de resposta para Cliente
  * 
@@ -48,6 +50,11 @@ public class ClienteResponseDTO {
      */
     private Boolean ativo;
 
+    /**
+     * Data de cadastro do cliente no sistema
+     */
+    private LocalDateTime dataCadastro;
+
     // Getters e Setters
     public Long getId() {
         return id;
@@ -95,5 +102,13 @@ public class ClienteResponseDTO {
 
     public void setAtivo(Boolean ativo) {
         this.ativo = ativo;
+    }
+
+    public LocalDateTime getDataCadastro() {
+        return dataCadastro;
+    }
+
+    public void setDataCadastro(LocalDateTime dataCadastro) {
+        this.dataCadastro = dataCadastro;
     }
 }

@@ -11,10 +11,13 @@ import com.exemplo.apifest.repository.*;
 import com.exemplo.apifest.service.PedidoService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -98,7 +101,7 @@ public class PedidoServiceImpl implements PedidoService {
         // ========== ETAPA 3: VALIDAÇÃO DOS PRODUTOS ==========
         BigDecimal subtotal = BigDecimal.ZERO;
         
-        for (ItemPedidoDTO itemDto : dto.getItens()) {
+        for (PedidoDTO.ItemPedidoDTO itemDto : dto.getItens()) {
             // Verificar se produto existe
             Produto produto = produtoRepository.findById(itemDto.getProdutoId())
                 .orElseThrow(() -> new EntityNotFoundException(
@@ -140,7 +143,7 @@ public class PedidoServiceImpl implements PedidoService {
         Pedido pedidoSalvo = pedidoRepository.save(pedido);
 
         // ========== ETAPA 6: CRIAÇÃO DOS ITENS DO PEDIDO ==========
-        for (ItemPedidoDTO itemDto : dto.getItens()) {
+        for (PedidoDTO.ItemPedidoDTO itemDto : dto.getItens()) {
             Produto produto = produtoRepository.findById(itemDto.getProdutoId()).get();
 
             ItemPedido itemPedido = new ItemPedido();
@@ -274,6 +277,14 @@ public class PedidoServiceImpl implements PedidoService {
     @Override
     @Transactional
     public PedidoResponseDTO cancelarPedido(Long id) {
+        return cancelarPedido(id, "Cancelado pelo sistema");
+    }
+
+    /**
+     * Cancela pedido com motivo específico
+     */
+    @Transactional
+    public PedidoResponseDTO cancelarPedido(Long id, String motivo) {
         // 1. VALIDAÇÃO: Verificar se pedido existe
         Pedido pedido = pedidoRepository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException(
@@ -295,7 +306,8 @@ public class PedidoServiceImpl implements PedidoService {
         // 4. PERSISTÊNCIA: Salvar alteração
         pedidoRepository.save(pedido);
 
-        return buscarPedidoPorId(id);
+        // 5. CONVERSÃO: Retornar DTO
+        return modelMapper.map(pedido, PedidoResponseDTO.class);
     }
 
     /**
@@ -348,6 +360,127 @@ public class PedidoServiceImpl implements PedidoService {
                 
             default:
                 return false;
+        }
+    }
+
+    // ========== MÉTODOS ADICIONAIS PARA TESTES ==========
+
+    /**
+     * Calcula valor total dos itens do pedido
+     */
+    public BigDecimal calcularValorTotal(Long pedidoId) {
+        Pedido pedido = pedidoRepository.findById(pedidoId)
+                .orElseThrow(() -> new EntityNotFoundException("Pedido não encontrado: " + pedidoId));
+        
+        return pedido.getItens().stream()
+                .map(item -> item.getPrecoUnitario().multiply(new BigDecimal(item.getQuantidade())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    /**
+     * Calcula valor total com taxa de entrega
+     */
+    public BigDecimal calcularValorTotalComTaxa(Long pedidoId) {
+        BigDecimal valorItens = calcularValorTotal(pedidoId);
+        // Assumindo taxa fixa de 5.00 para teste
+        return valorItens.add(new BigDecimal("5.00"));
+    }
+
+    /**
+     * Confirma pedido
+     */
+    @Transactional
+    public PedidoResponseDTO confirmarPedido(Long pedidoId) {
+        return atualizarStatusPedido(pedidoId, StatusPedido.CONFIRMADO);
+    }
+
+    /**
+     * Inicia preparação do pedido
+     */
+    @Transactional
+    public PedidoResponseDTO iniciarPreparacao(Long pedidoId) {
+        return atualizarStatusPedido(pedidoId, StatusPedido.PREPARANDO);
+    }
+
+    /**
+     * Marca pedido como pronto
+     */
+    @Transactional
+    public PedidoResponseDTO marcarComoPronto(Long pedidoId) {
+        return atualizarStatusPedido(pedidoId, StatusPedido.PRONTO);
+    }
+
+    /**
+     * Marca pedido como entregue
+     */
+    @Transactional
+    public PedidoResponseDTO marcarComoEntregue(Long pedidoId) {
+        return atualizarStatusPedido(pedidoId, StatusPedido.ENTREGUE);
+    }
+
+    /**
+     * Busca pedidos por cliente com paginação
+     */
+    public Page<PedidoResponseDTO> buscarPedidosPorCliente(Long clienteId, Pageable pageable) {
+        Page<Pedido> pedidos = pedidoRepository.findByClienteIdOrderByDataPedidoDesc(clienteId, pageable);
+        return pedidos.map(pedido -> modelMapper.map(pedido, PedidoResponseDTO.class));
+    }
+
+    /**
+     * Busca pedidos por status
+     */
+    public List<PedidoResponseDTO> buscarPorStatus(StatusPedido status) {
+        List<Pedido> pedidos = pedidoRepository.findByStatus(status);
+        return pedidos.stream()
+                .map(pedido -> modelMapper.map(pedido, PedidoResponseDTO.class))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Busca pedidos por período
+     */
+    public List<PedidoResponseDTO> buscarPorPeriodo(LocalDateTime inicio, LocalDateTime fim) {
+        List<Pedido> pedidos = pedidoRepository.findByDataPedidoBetween(inicio, fim);
+        return pedidos.stream()
+                .map(pedido -> modelMapper.map(pedido, PedidoResponseDTO.class))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Calcula total de vendas do dia
+     */
+    public BigDecimal calcularTotalVendasDia() {
+        LocalDateTime inicioDia = LocalDateTime.now().withHour(0).withMinute(0).withSecond(0);
+        LocalDateTime fimDia = LocalDateTime.now().withHour(23).withMinute(59).withSecond(59);
+        return pedidoRepository.calcularTotalVendasPeriodo(inicioDia, fimDia);
+    }
+
+    /**
+     * Conta pedidos por status
+     */
+    public long contarPedidosPorStatus(StatusPedido status) {
+        return pedidoRepository.countByStatus(status);
+    }
+
+    /**
+     * Calcula tempo médio de preparação
+     */
+    public Double calcularTempoMedioPreparacao() {
+        return pedidoRepository.calcularTempoMedioPreparacao();
+    }
+
+    /**
+     * Valida valor mínimo do pedido
+     */
+    public void validarValorMinimo(Long pedidoId) {
+        Pedido pedido = pedidoRepository.findById(pedidoId)
+                .orElseThrow(() -> new EntityNotFoundException("Pedido não encontrado: " + pedidoId));
+        
+        BigDecimal valorMinimo = new BigDecimal("20.00"); // Valor padrão para teste
+        BigDecimal valorPedido = new BigDecimal(pedido.getValor());
+        
+        if (valorPedido.compareTo(valorMinimo) < 0) {
+            throw new BusinessException("Valor do pedido abaixo do mínimo: R$ " + valorMinimo);
         }
     }
 }

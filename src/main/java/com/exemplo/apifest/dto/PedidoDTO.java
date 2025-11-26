@@ -77,4 +77,78 @@ public class PedidoDTO {
      */
     @Size(max = 500, message = "Observações devem ter no máximo 500 caracteres")
     private String observacoes;
+
+    // Getters e Setters manuais devido ao problema do Lombok
+    public Long getClienteId() { return clienteId; }
+    public void setClienteId(Long clienteId) { this.clienteId = clienteId; }
+    
+    public Long getRestauranteId() { return restauranteId; }
+    public void setRestauranteId(Long restauranteId) { this.restauranteId = restauranteId; }
+    
+    public String getEnderecoEntrega() { return enderecoEntrega; }
+    public void setEnderecoEntrega(String enderecoEntrega) { this.enderecoEntrega = enderecoEntrega; }
+    
+    public String getCep() { return cep; }
+    public void setCep(String cep) { this.cep = cep; }
+    
+    public List<ItemPedidoDTO> getItens() { return itens; }
+    public void setItens(List<ItemPedidoDTO> itens) { this.itens = itens; }
+    
+    public String getObservacoes() { return observacoes; }
+    public void setObservacoes(String observacoes) { this.observacoes = observacoes; }
+
+    /**
+     * DTO para representar um item do pedido
+     * Classe aninhada que valida cada produto e quantidade
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ItemPedidoDTO {
+
+        /**
+         * ID do produto sendo pedido
+         * Deve referenciar um produto existente e ativo
+         * Deve pertencer ao restaurante do pedido
+         */
+        @NotNull(message = "Produto ID é obrigatório")
+        private Long produtoId;
+
+        /**
+         * Quantidade do produto
+         * Deve ser positiva e não exceder o estoque disponível
+         */
+        @NotNull(message = "Quantidade é obrigatória")
+        private Integer quantidade;
+
+        /**
+         * Observações específicas para este item (opcional)
+         * Exemplo: "Sem molho", "Extra queijo", etc.
+         */
+        @Size(max = 200, message = "Observações do item devem ter no máximo 200 caracteres")
+        private String observacoes;
+        
+        /**
+         * Preço unitário do produto (para compatibilidade com testes)
+         */
+        private java.math.BigDecimal precoUnitario;
+        
+        // Métodos de compatibilidade
+        public Long getProdutoId() { return produtoId; }
+        public void setProdutoId(Long produtoId) { this.produtoId = produtoId; }
+        
+        public Integer getQuantidade() { return quantidade; }
+        public void setQuantidade(Integer quantidade) { this.quantidade = quantidade; }
+        
+        public String getObservacoes() { return observacoes; }
+        public void setObservacoes(String observacoes) { this.observacoes = observacoes; }
+        
+        public void setPrecoUnitario(java.math.BigDecimal precoUnitario) {
+            this.precoUnitario = precoUnitario;
+        }
+        
+        public java.math.BigDecimal getPrecoUnitario() {
+            return precoUnitario;
+        }
+    }
 }

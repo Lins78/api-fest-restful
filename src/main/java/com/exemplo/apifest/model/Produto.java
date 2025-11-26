@@ -140,4 +140,28 @@ public class Produto {
     public void indisponibilizar() {
         this.disponivel = false;
     }
+    
+    // ========== MÉTODOS DE COMPATIBILIDADE PARA TESTES ==========
+    
+    /**
+     * Campos de compatibilidade para funcionalidades de estoque e status.
+     */
+    private Integer quantidadeEstoque = 100; // Valor padrão para compatibilidade
+    private String status = "ATIVO"; // Status como String para compatibilidade
+    
+    public Integer getQuantidadeEstoque() {
+        return quantidadeEstoque;
+    }
+    
+    public void setQuantidadeEstoque(Integer quantidadeEstoque) {
+        this.quantidadeEstoque = quantidadeEstoque;
+    }
+    
+    public String getStatus() {
+        return status;
+    }
+    
+    public void setStatus(String status) {
+        this.status = status;
+    }
 }

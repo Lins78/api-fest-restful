@@ -16,6 +16,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 /**
  * ===============================================================================
@@ -167,5 +169,102 @@ public class ClienteServiceImpl implements ClienteService {
         return clientesAtivos.stream()
             .map(cliente -> modelMapper.map(cliente, ClienteResponseDTO.class))
             .collect(Collectors.toList());
+    }
+
+    // ===============================================================================
+    // MÉTODOS ADICIONAIS PARA COMPATIBILIDADE COM TESTES
+    // ===============================================================================
+    
+    /**
+     * Alias para cadastrarCliente para compatibilidade com testes.
+     */
+    public ClienteResponseDTO criarCliente(ClienteDTO dto) {
+        return cadastrarCliente(dto);
+    }
+    
+    /**
+     * Alias para buscarClientePorId para compatibilidade com testes.
+     */
+    public ClienteResponseDTO buscarPorId(Long id) {
+        return buscarClientePorId(id);
+    }
+    
+    /**
+     * Busca cliente por email retornando Optional para compatibilidade com testes.
+     */
+    public Optional<ClienteResponseDTO> buscarPorEmail(String email) {
+        try {
+            ClienteResponseDTO cliente = buscarClientePorEmail(email);
+            return Optional.of(cliente);
+        } catch (EntityNotFoundException e) {
+            return Optional.empty();
+        }
+    }
+    
+    /**
+     * Lista todos os clientes com paginação.
+     */
+    public Page<ClienteResponseDTO> listarTodos(Pageable pageable) {
+        Page<Cliente> clientesPage = clienteRepository.findAll(pageable);
+        return clientesPage.map(cliente -> modelMapper.map(cliente, ClienteResponseDTO.class));
+    }
+    
+    /**
+     * Alias para listarClientesAtivos para compatibilidade com testes.
+     */
+    public List<ClienteResponseDTO> listarAtivos() {
+        return listarClientesAtivos();
+    }
+    
+    /**
+     * Busca clientes por nome (termo de busca).
+     */
+    public List<ClienteResponseDTO> buscarPorNome(String termoBusca) {
+        List<Cliente> clientes = clienteRepository.findByNomeContainingIgnoreCase(termoBusca);
+        return clientes.stream()
+            .map(cliente -> modelMapper.map(cliente, ClienteResponseDTO.class))
+            .collect(Collectors.toList());
+    }
+    
+    /**
+     * Exclui um cliente fisicamente do banco de dados.
+     */
+    @Transactional
+    public void excluirCliente(Long id) {
+        if (!clienteRepository.existsById(id)) {
+            throw new EntityNotFoundException(
+                String.format("Cliente não encontrado com ID: %d", id)
+            );
+        }
+        clienteRepository.deleteById(id);
+    }
+    
+    /**
+     * Desativa um cliente (apenas marca como inativo).
+     */
+    @Transactional
+    public ClienteResponseDTO desativarCliente(Long id) {
+        Cliente cliente = clienteRepository.findById(id)
+            .orElseThrow(() -> new EntityNotFoundException(
+                String.format("Cliente não encontrado com ID: %d", id)
+            ));
+            
+        cliente.setAtivo(false);
+        Cliente clienteAtualizado = clienteRepository.save(cliente);
+        return modelMapper.map(clienteAtualizado, ClienteResponseDTO.class);
+    }
+    
+    /**
+     * Verifica se já existe um cliente com o email informado.
+     */
+    public boolean emailJaExiste(String email) {
+        return clienteRepository.existsByEmail(email);
+    }
+    
+    /**
+     * Conta o total de clientes cadastrados.
+     */
+    public long contarTotalClientes() {
+        return clienteRepository.count();
     }
 }

@@ -6,7 +6,7 @@ import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -33,17 +33,14 @@ public class JwtUtil {
 
     private static final Logger logger = LoggerFactory.getLogger(JwtUtil.class);
 
-    @Value("${jwt.secret}")
-    private String jwtSecret;
-
-    @Value("${jwt.expiration}")
-    private int jwtExpirationMs;
+    @Autowired
+    private JwtProperties jwtProperties;
 
     /**
      * Gera a chave de assinatura baseada no secret
      */
     private Key getSignInKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(jwtSecret);
+        byte[] keyBytes = Decoders.BASE64.decode(jwtProperties.getSecret());
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
@@ -73,11 +70,36 @@ public class JwtUtil {
     }
 
     /**
+     * Gera token JWT para um email (compatibilidade com AuthService)
+     * 
+     * @param email Email do usuário
+     * @return Token JWT gerado
+     */
+    public String generateToken(String email) {
+        Map<String, Object> claims = new HashMap<>();
+        return createToken(claims, email);
+    }
+
+    /**
+     * Gera token JWT para um usuário do tipo User (compatibilidade com testes)
+     * 
+     * @param user Usuário do tipo User
+     * @return Token JWT gerado
+     */
+    public String generateToken(com.exemplo.apifest.model.User user) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("userId", user.getId());
+        claims.put("role", user.getRole());
+        claims.put("nome", user.getNome());
+        return createToken(claims, user.getEmail());
+    }
+
+    /**
      * Cria o token JWT com claims e subject
      */
     private String createToken(Map<String, Object> claims, String subject) {
         Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + jwtExpirationMs);
+        Date expiryDate = new Date(now.getTime() + jwtProperties.getExpiration());
 
         return Jwts.builder()
                 .setClaims(claims)
@@ -93,6 +115,13 @@ public class JwtUtil {
      */
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
+    }
+
+    /**
+     * Extrai o email do token (alias para extractUsername para compatibilidade)
+     */
+    public String extractEmail(String token) {
+        return extractUsername(token);
     }
 
     /**
@@ -161,6 +190,25 @@ public class JwtUtil {
     }
 
     /**
+     * Valida se o token é válido (sobrecarga para compatibilidade)
+     */
+    public boolean isTokenValid(String token) {
+        try {
+            return !isTokenExpired(token);
+        } catch (Exception e) {
+            logger.error("Erro na validação do token: {}", e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Valida se o token é válido (alias para compatibilidade com testes)
+     */
+    public boolean validateToken(String token) {
+        return isTokenValid(token);
+    }
+
+    /**
      * Extrai o userId do token
      */
     public Long extractUserId(String token) {
@@ -196,6 +244,6 @@ public class JwtUtil {
      * Retorna o tempo de expiração em segundos
      */
     public long getExpirationTimeInSeconds() {
-        return jwtExpirationMs / 1000;
+        return jwtProperties.getExpiration() / 1000;
     }
 }

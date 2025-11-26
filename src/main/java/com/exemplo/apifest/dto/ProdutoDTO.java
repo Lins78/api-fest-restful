@@ -101,4 +101,19 @@ public class ProdutoDTO {
     public void setRestauranteId(Long restauranteId) {
         this.restauranteId = restauranteId;
     }
+    
+    // ========== MÉTODOS DE COMPATIBILIDADE ==========
+    
+    /**
+     * Campo de compatibilidade para quantidade de estoque.
+     */
+    private Integer quantidadeEstoque;
+    
+    public Integer getQuantidadeEstoque() {
+        return quantidadeEstoque;
+    }
+    
+    public void setQuantidadeEstoque(int quantidadeEstoque) {
+        this.quantidadeEstoque = quantidadeEstoque;
+    }
 }

@@ -2,6 +2,8 @@ package com.exemplo.apifest.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * ROTEIRO 3 - ENTIDADE PEDIDO
@@ -49,6 +51,10 @@ public class Pedido {
     /** Status atual do pedido usando enum StatusPedido - ROTEIRO 3 */
     @Enumerated(EnumType.STRING)
     private StatusPedido status;
+
+    /** Lista de itens do pedido - RELACIONAMENTO ONETOMANY */
+    @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<ItemPedido> itens = new ArrayList<>();
 
     /** Flag indicando se o pedido está ativo no sistema */
     private Boolean ativo;
@@ -98,6 +104,9 @@ public class Pedido {
 
     public Boolean getAtivo() { return ativo; }
     public void setAtivo(Boolean ativo) { this.ativo = ativo; }
+
+    public List<ItemPedido> getItens() { return itens; }
+    public void setItens(List<ItemPedido> itens) { this.itens = itens; }
 
     // Business methods
     

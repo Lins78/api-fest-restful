@@ -90,6 +90,11 @@ public class Cliente {
     public Boolean getAtivo() { return ativo; }
     public void setAtivo(Boolean ativo) { this.ativo = ativo; }
 
+    // Método de compatibilidade para testes legados
+    private String cpf;
+    public String getCpf() { return cpf; }
+    public void setCpf(String cpf) { this.cpf = cpf; }
+
     // Business methods
     public void inativar() {
         this.ativo = false;

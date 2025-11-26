@@ -6,6 +6,7 @@ import com.exemplo.apifest.validation.ValidHorarioFuncionamento;
 import jakarta.validation.constraints.*;
 
 import java.math.BigDecimal;
+import java.time.LocalTime;
 
 /**
  * DTO para criação e atualização de Restaurante
@@ -42,12 +43,56 @@ public class RestauranteDTO {
     private String categoria;
 
     /**
+     * Descrição do restaurante
+     */
+    @Size(max = 500, message = "Descrição não pode exceder 500 caracteres")
+    private String descricao;
+
+    /**
+     * Email do restaurante
+     */
+    @Email(message = "Email deve ter um formato válido")
+    private String email;
+
+    /**
      * Telefone do restaurante
      * Deve seguir formato brasileiro: (11) 99999-9999 ou 11999999999
      */
     @NotBlank(message = "Telefone é obrigatório")
     @ValidTelefone(message = "Telefone deve estar no formato brasileiro válido")
     private String telefone;
+
+    /**
+     * CEP do restaurante
+     */
+    @Pattern(regexp = "\\d{5}-?\\d{3}", message = "CEP deve ter formato válido")
+    private String cep;
+
+    /**
+     * Logradouro do restaurante
+     */
+    private String logradouro;
+
+    /**
+     * Número do restaurante
+     */
+    private String numero;
+
+    /**
+     * Bairro do restaurante
+     */
+    private String bairro;
+
+    /**
+     * Cidade do restaurante
+     */
+    private String cidade;
+
+    /**
+     * UF do restaurante
+     */
+    @Size(min = 2, max = 2, message = "UF deve ter 2 caracteres")
+    private String uf;
 
     /**
      * Endereço completo do restaurante
@@ -65,6 +110,22 @@ public class RestauranteDTO {
     @DecimalMin(value = "0.0", inclusive = true, message = "Taxa de entrega deve ser maior ou igual a zero")
     @DecimalMax(value = "50.0", inclusive = true, message = "Taxa de entrega não pode exceder R$ 50,00")
     private BigDecimal taxaEntrega;
+
+    /**
+     * Valor mínimo do pedido
+     */
+    @DecimalMin(value = "0.0", inclusive = true, message = "Valor mínimo deve ser maior ou igual a zero")
+    private BigDecimal valorMinimo;
+
+    /**
+     * Horário de abertura
+     */
+    private LocalTime horarioAbertura;
+
+    /**
+     * Horário de fechamento
+     */
+    private LocalTime horarioFechamento;
 
     /**
      * Tempo médio de entrega em minutos
@@ -100,12 +161,76 @@ public class RestauranteDTO {
         this.categoria = categoria;
     }
 
+    public String getDescricao() {
+        return descricao;
+    }
+
+    public void setDescricao(String descricao) {
+        this.descricao = descricao;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
     public String getTelefone() {
         return telefone;
     }
 
     public void setTelefone(String telefone) {
         this.telefone = telefone;
+    }
+
+    public String getCep() {
+        return cep;
+    }
+
+    public void setCep(String cep) {
+        this.cep = cep;
+    }
+
+    public String getLogradouro() {
+        return logradouro;
+    }
+
+    public void setLogradouro(String logradouro) {
+        this.logradouro = logradouro;
+    }
+
+    public String getNumero() {
+        return numero;
+    }
+
+    public void setNumero(String numero) {
+        this.numero = numero;
+    }
+
+    public String getBairro() {
+        return bairro;
+    }
+
+    public void setBairro(String bairro) {
+        this.bairro = bairro;
+    }
+
+    public String getCidade() {
+        return cidade;
+    }
+
+    public void setCidade(String cidade) {
+        this.cidade = cidade;
+    }
+
+    public String getUf() {
+        return uf;
+    }
+
+    public void setUf(String uf) {
+        this.uf = uf;
     }
 
     public String getEndereco() {
@@ -122,6 +247,30 @@ public class RestauranteDTO {
 
     public void setTaxaEntrega(BigDecimal taxaEntrega) {
         this.taxaEntrega = taxaEntrega;
+    }
+
+    public BigDecimal getValorMinimo() {
+        return valorMinimo;
+    }
+
+    public void setValorMinimo(BigDecimal valorMinimo) {
+        this.valorMinimo = valorMinimo;
+    }
+
+    public LocalTime getHorarioAbertura() {
+        return horarioAbertura;
+    }
+
+    public void setHorarioAbertura(LocalTime horarioAbertura) {
+        this.horarioAbertura = horarioAbertura;
+    }
+
+    public LocalTime getHorarioFechamento() {
+        return horarioFechamento;
+    }
+
+    public void setHorarioFechamento(LocalTime horarioFechamento) {
+        this.horarioFechamento = horarioFechamento;
     }
 
     public Integer getTempoEntregaMinutos() {

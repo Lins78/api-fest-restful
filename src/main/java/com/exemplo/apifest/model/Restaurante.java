@@ -2,6 +2,7 @@ package com.exemplo.apifest.model;
 
 import jakarta.persistence.*;
 import java.math.BigDecimal;
+import java.time.LocalTime;
 
 /**
  * ROTEIRO 3 - ENTIDADE RESTAURANTE
@@ -39,11 +40,24 @@ public class Restaurante {
     /** Telefone de contato do restaurante */
     private String telefone;
     
+    /** Email de contato do restaurante */
+    @Column(unique = true)
+    private String email;
+    
     /** Categoria do restaurante (Ex: Italiana, Japonesa, Fast Food, etc.) - ROTEIRO 3 */
     private String categoria;
     
     /** Taxa de entrega cobrada pelo restaurante em reais - ROTEIRO 3 */
     private BigDecimal taxaEntrega;
+    
+    /** Horário de abertura do restaurante */
+    private LocalTime horarioAbertura;
+    
+    /** Horário de fechamento do restaurante */
+    private LocalTime horarioFechamento;
+    
+    /** Valor mínimo para pedido */
+    private BigDecimal valorMinimo;
     
     /** Flag indicando se o restaurante está ativo e aceitando pedidos */
     private Boolean ativo;
@@ -67,6 +81,16 @@ public class Restaurante {
         this.ativo = true;
     }
 
+    public Restaurante(String nome, String endereco, String telefone, String email, String categoria, BigDecimal taxaEntrega) {
+        this.nome = nome;
+        this.endereco = endereco;
+        this.telefone = telefone;
+        this.email = email;
+        this.categoria = categoria;
+        this.taxaEntrega = taxaEntrega;
+        this.ativo = true;
+    }
+
     // Getters and Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -80,6 +104,9 @@ public class Restaurante {
     public String getTelefone() { return telefone; }
     public void setTelefone(String telefone) { this.telefone = telefone; }
 
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+
     public String getCategoria() { return categoria; }
     public void setCategoria(String categoria) { this.categoria = categoria; }
 
@@ -89,8 +116,32 @@ public class Restaurante {
     public Boolean getAtivo() { return ativo; }
     public void setAtivo(Boolean ativo) { this.ativo = ativo; }
 
+    public LocalTime getHorarioAbertura() { return horarioAbertura; }
+    public void setHorarioAbertura(LocalTime horarioAbertura) { this.horarioAbertura = horarioAbertura; }
+
+    public LocalTime getHorarioFechamento() { return horarioFechamento; }
+    public void setHorarioFechamento(LocalTime horarioFechamento) { this.horarioFechamento = horarioFechamento; }
+
+    public BigDecimal getValorMinimo() { return valorMinimo; }
+    public void setValorMinimo(BigDecimal valorMinimo) { this.valorMinimo = valorMinimo; }
+
     // Business methods
     public void inativar() {
         this.ativo = false;
+    }
+    
+    // ========== MÉTODOS DE COMPATIBILIDADE PARA TESTES ==========
+    
+    /**
+     * Campos de compatibilidade para funcionalidades de status.
+     */
+    private String status = "ATIVO"; // Status como String para compatibilidade
+    
+    public String getStatus() {
+        return status;
+    }
+    
+    public void setStatus(String status) {
+        this.status = status;
     }
 }
