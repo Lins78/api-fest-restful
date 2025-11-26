@@ -1,0 +1,147 @@
+# ===============================================================================
+# DOCKERFILE OTIMIZADO - API FEST RESTful - ROTEIRO 10
+# ===============================================================================
+# 
+# Este Dockerfile implementa um multi-stage build para criar uma imagem
+# otimizada da aplicação Spring Boot com as seguintes características:
+# 
+# ✅ Multi-stage build para reduzir tamanho da imagem final
+# ✅ Imagem base Alpine Linux (leve e segura)
+# ✅ Otimizações de cache de layers Docker
+# ✅ Usuário não-root para segurança
+# ✅ Healthcheck integrado
+# ✅ Configuração otimizada de JVM
+# ✅ Suporte a cache Redis e PostgreSQL
+# 
+# @author DeliveryTech Development Team
+# @version 1.0 - Roteiro 10
+# @since Java 21 LTS + Spring Boot 3.4.12
+# ===============================================================================
+
+# ========== STAGE 1: BUILD (Maven + OpenJDK) ==========
+FROM eclipse-temurin:21-jdk-alpine AS builder
+
+# Metadados da imagem
+LABEL stage=builder
+LABEL description="Build stage for API FEST RESTful application"
+
+# Instalar dependências de build
+RUN apk add --no-cache \
+    curl \
+    bash \
+    && rm -rf /var/cache/apk/*
+
+# Definir diretório de trabalho
+WORKDIR /workspace/app
+
+# Copiar arquivos de configuração Maven (para cache de dependências)
+COPY pom.xml .
+COPY mvnw .
+COPY .mvn .mvn
+
+# Tornar mvnw executável
+RUN chmod +x mvnw
+
+# Download das dependências (layer separada para cache)
+RUN ./mvnw dependency:go-offline -B
+
+# Copiar código fonte
+COPY src src
+
+# Build da aplicação (skip tests para build mais rápido)
+RUN ./mvnw clean package -DskipTests -B && \
+    mkdir -p target/dependency && \
+    (cd target/dependency; jar -xf ../*.jar)
+
+# ========== STAGE 2: PRODUCTION (Runtime Alpine) ==========
+FROM eclipse-temurin:21-jre-alpine AS production
+
+# Metadados da imagem final
+LABEL maintainer="DeliveryTech Team"
+LABEL description="API FEST RESTful - Production Container"
+LABEL version="1.0.0"
+LABEL roteiro="10"
+
+# Instalar dependências runtime e utilitários
+RUN apk add --no-cache \
+    curl \
+    bash \
+    tzdata \
+    dumb-init \
+    && rm -rf /var/cache/apk/*
+
+# Configurar timezone (UTC por padrão)
+ENV TZ=America/Sao_Paulo
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+# Criar usuário não-root para segurança
+RUN addgroup -g 1001 -S spring && \
+    adduser -u 1001 -S spring -G spring
+
+# Criar diretórios da aplicação
+RUN mkdir -p /app/logs /app/tmp && \
+    chown -R spring:spring /app
+
+# Definir usuário não-root
+USER spring:spring
+
+# Definir diretório de trabalho
+WORKDIR /app
+
+# Variáveis de ambiente otimizadas para JVM
+ENV JAVA_OPTS="-XX:+UseContainerSupport \
+               -XX:MaxRAMPercentage=75.0 \
+               -XX:+UseG1GC \
+               -XX:+UseStringDeduplication \
+               -XX:+OptimizeStringConcat \
+               -Djava.security.egd=file:/dev/./urandom \
+               -Dspring.backgroundpreinitializer.ignore=true"
+
+# Variáveis de ambiente da aplicação
+ENV SPRING_PROFILES_ACTIVE=prod
+ENV MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE=health,info,metrics,prometheus
+ENV LOGGING_LEVEL_ROOT=INFO
+ENV SERVER_PORT=8080
+
+# Copiar dependências da stage de build (otimização de cache)
+ARG DEPENDENCY=/workspace/app/target/dependency
+COPY --from=builder ${DEPENDENCY}/BOOT-INF/lib /app/lib
+COPY --from=builder ${DEPENDENCY}/META-INF /app/META-INF
+COPY --from=builder ${DEPENDENCY}/BOOT-INF/classes /app
+
+# Porta exposta
+EXPOSE 8080 8081
+
+# Volume para logs persistentes
+VOLUME ["/app/logs"]
+
+# Healthcheck customizado
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:8080/actuator/health || exit 1
+
+# Script de entrada com dumb-init para melhor handling de sinais
+ENTRYPOINT ["dumb-init", "--"]
+
+# Comando de execução otimizado
+CMD ["java", \
+     "-cp", "/app:/app/lib/*", \
+     "com.exemplo.apifest.ApiFestRestfullApplication"]
+    adduser -S appuser -u 1001 -G appgroup
+
+WORKDIR /app
+
+# Copiar JAR compilado do estágio anterior
+COPY --from=builder /app/target/*.jar app.jar
+
+# Mudar para usuário não-root
+USER appuser
+
+# Expor porta
+EXPOSE 8080
+
+# Configurar JVM para Java 21 com otimizações
+ENV JAVA_OPTS="-XX:+UseZGC -XX:+UnlockExperimentalVMOptions -Xmx512m -Xms256m"
+
+# Usar dumb-init para signal handling adequado
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]

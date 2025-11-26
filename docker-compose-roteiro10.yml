@@ -1,0 +1,239 @@
+# ===============================================================================
+# DOCKER COMPOSE - API FEST RESTful - ROTEIRO 10
+# ===============================================================================
+# 
+# Orquestração completa da aplicação com todos os serviços necessários:
+# 
+# 🚀 Aplicação Spring Boot (API FEST)
+# 🐘 PostgreSQL (Banco de dados principal)
+# 🔴 Redis (Cache distribuído)
+# 📊 Prometheus (Métricas - opcional)
+# 📈 Grafana (Dashboard - opcional)
+# 🌐 Nginx (Load balancer/Proxy - opcional)
+# 
+# @author DeliveryTech Development Team
+# @version 1.0 - Roteiro 10
+# @since Docker Compose v3.8
+# ===============================================================================
+
+version: '3.8'
+
+# ========== REDES CUSTOMIZADAS ==========
+networks:
+  api-fest-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
+
+# ========== VOLUMES PERSISTENTES ==========
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  app_logs:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+
+# ========== SERVIÇOS ==========
+services:
+
+  # ========== POSTGRESQL DATABASE ==========
+  postgres:
+    image: postgres:15-alpine
+    container_name: api-fest-postgres
+    restart: unless-stopped
+    
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-api_fest_db}
+      POSTGRES_USER: ${POSTGRES_USER:-api_fest_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-api_fest_password}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --lc-collate=C --lc-ctype=C"
+      PGDATA: /var/lib/postgresql/data/pgdata
+    
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    
+    networks:
+      api-fest-network:
+        ipv4_address: 172.20.0.10
+    
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-api_fest_user} -d ${POSTGRES_DB:-api_fest_db}"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+
+  # ========== REDIS CACHE ==========
+  redis:
+    image: redis:7-alpine
+    container_name: api-fest-redis
+    restart: unless-stopped
+    
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-redis_password}
+    
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-redis_password}
+    
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    
+    volumes:
+      - redis_data:/data
+    
+    networks:
+      api-fest-network:
+        ipv4_address: 172.20.0.11
+    
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
+        reservations:
+          memory: 128M
+          cpus: '0.1'
+
+  # ========== API FEST APPLICATION ==========
+  api-fest:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+      args:
+        BUILD_DATE: ${BUILD_DATE}
+        VCS_REF: ${VCS_REF}
+        VERSION: ${VERSION:-1.0.0}
+    
+    image: api-fest:${VERSION:-latest}
+    container_name: api-fest-app
+    restart: unless-stopped
+    
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    
+    environment:
+      # ========== SPRING PROFILES ==========
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
+      
+      # ========== DATABASE CONFIGURATION ==========
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-api_fest_db}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-api_fest_user}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-api_fest_password}
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.postgresql.Driver
+      
+      # ========== JPA/HIBERNATE CONFIGURATION ==========
+      SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.PostgreSQLDialect
+      SPRING_JPA_HIBERNATE_DDL_AUTO: ${DDL_AUTO:-update}
+      SPRING_JPA_SHOW_SQL: ${SHOW_SQL:-false}
+      SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL: false
+      
+      # ========== REDIS CACHE CONFIGURATION ==========
+      APP_CACHE_PROVIDER: redis
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      SPRING_DATA_REDIS_PASSWORD: ${REDIS_PASSWORD:-redis_password}
+      SPRING_DATA_REDIS_DATABASE: 0
+      SPRING_DATA_REDIS_TIMEOUT: 2000ms
+      
+      # ========== APPLICATION CONFIGURATION ==========
+      SERVER_PORT: 8080
+      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,info,metrics,prometheus
+      MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS: always
+      
+      # ========== SECURITY CONFIGURATION ==========
+      APP_JWT_SECRET: ${JWT_SECRET:-your-256-bit-secret-here-make-it-long-and-secure}
+      APP_JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
+      
+      # ========== LOGGING CONFIGURATION ==========
+      LOGGING_LEVEL_ROOT: ${LOG_LEVEL:-INFO}
+      LOGGING_LEVEL_COM_EXEMPLO_APIFEST: ${APP_LOG_LEVEL:-DEBUG}
+      LOGGING_FILE_NAME: /app/logs/api-fest.log
+      
+      # ========== JVM OPTIMIZATION ==========
+      JAVA_OPTS: >-
+        -XX:+UseContainerSupport
+        -XX:MaxRAMPercentage=75.0
+        -XX:+UseG1GC
+        -XX:+UseStringDeduplication
+        -Djava.security.egd=file:/dev/./urandom
+        -Dspring.backgroundpreinitializer.ignore=true
+    
+    ports:
+      - "${APP_PORT:-8080}:8080"
+      - "${ACTUATOR_PORT:-8081}:8081"
+    
+    volumes:
+      - app_logs:/app/logs
+    
+    networks:
+      api-fest-network:
+        ipv4_address: 172.20.0.20
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+    
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+
+# ===============================================================================
+# COMANDOS ÚTEIS
+# ===============================================================================
+# 
+# Subir apenas essenciais (app + banco + redis):
+# docker-compose up -d postgres redis api-fest
+# 
+# Rebuild da aplicação:
+# docker-compose build api-fest
+# 
+# Logs da aplicação:
+# docker-compose logs -f api-fest
+# 
+# Status dos serviços:
+# docker-compose ps
+# 
+# Parar tudo:
+# docker-compose down
+# 
+# Parar e remover volumes:
+# docker-compose down -v
+# 
+# ===============================================================================

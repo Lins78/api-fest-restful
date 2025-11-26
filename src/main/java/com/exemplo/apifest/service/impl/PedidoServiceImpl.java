@@ -11,10 +11,13 @@ import com.exemplo.apifest.repository.*;
 import com.exemplo.apifest.service.PedidoService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.exemplo.apifest.config.CacheConfig;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -74,9 +77,13 @@ public class PedidoServiceImpl implements PedidoService {
      * Esta operação coordena múltiplas validações e persistências que devem
      * ser executadas de forma atômica. Se qualquer etapa falhar, toda a
      * transação é revertida para manter a consistência dos dados.
+     * 
+     * CACHE: Invalida cache de pedidos do cliente após criação.
      */
     @Override
     @Transactional
+    @CacheEvict(value = CacheConfig.PEDIDOS_CACHE, 
+                key = "'cliente:' + #dto.clienteId", beforeInvocation = false)
     public PedidoResponseDTO criarPedido(PedidoDTO dto) {
         // ========== ETAPA 1: VALIDAÇÃO DO CLIENTE ==========
         Cliente cliente = clienteRepository.findById(dto.getClienteId())
@@ -162,8 +169,10 @@ public class PedidoServiceImpl implements PedidoService {
 
     /**
      * Busca pedido completo com todos os itens.
+     * CACHE: Pedido completo cacheado por 2 minutos.
      */
     @Override
+    @Cacheable(value = CacheConfig.PEDIDOS_CACHE, key = "'pedido:' + #id")
     public PedidoResponseDTO buscarPedidoPorId(Long id) {
         Pedido pedido = pedidoRepository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException(

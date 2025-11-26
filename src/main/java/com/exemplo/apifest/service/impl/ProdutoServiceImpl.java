@@ -11,8 +11,12 @@ import com.exemplo.apifest.repository.RestauranteRepository;
 import com.exemplo.apifest.service.ProdutoService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.exemplo.apifest.config.CacheConfig;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
@@ -63,9 +67,12 @@ public class ProdutoServiceImpl implements ProdutoService {
 
     /**
      * Cadastra um novo produto com validações de negócio.
+     * CACHE: Invalida cache de produtos do restaurante após criação.
      */
     @Override
     @Transactional
+    @CacheEvict(value = CacheConfig.PRODUTOS_CACHE, 
+                key = "'restaurante:' + #dto.restauranteId", beforeInvocation = false)
     public ProdutoResponseDTO cadastrarProduto(ProdutoDTO dto) {
         // 1. VALIDAÇÃO: Verificar se restaurante existe e está ativo
         Restaurante restaurante = restauranteRepository.findById(dto.getRestauranteId())
@@ -109,8 +116,10 @@ public class ProdutoServiceImpl implements ProdutoService {
 
     /**
      * Busca produtos por restaurante (apenas disponíveis).
+     * CACHE: Produtos por restaurante são cacheados por 10 minutos.
      */
     @Override
+    @Cacheable(value = CacheConfig.PRODUTOS_CACHE, key = "'restaurante:' + #restauranteId")
     public List<ProdutoResponseDTO> buscarProdutosPorRestaurante(Long restauranteId) {
         // VALIDAÇÃO: Verificar se restaurante existe
         if (!restauranteRepository.existsById(restauranteId)) {
@@ -128,8 +137,10 @@ public class ProdutoServiceImpl implements ProdutoService {
 
     /**
      * Busca produto por ID com validação de disponibilidade.
+     * CACHE: Produto individual cacheado por 5 minutos.
      */
     @Override
+    @Cacheable(value = CacheConfig.PRODUTO_CACHE, key = "'produto:' + #id")
     public ProdutoResponseDTO buscarProdutoPorId(Long id) {
         Produto produto = produtoRepository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException(
@@ -146,9 +157,12 @@ public class ProdutoServiceImpl implements ProdutoService {
 
     /**
      * Atualiza dados do produto com validações.
+     * CACHE: Invalida cache do produto e lista de produtos do restaurante.
      */
     @Override
     @Transactional
+    @CacheEvict(value = {CacheConfig.PRODUTO_CACHE, CacheConfig.PRODUTOS_CACHE}, 
+                allEntries = true, beforeInvocation = false)
     public ProdutoResponseDTO atualizarProduto(Long id, ProdutoDTO dto) {
         // 1. VALIDAÇÃO: Verificar se produto existe
         Produto produto = produtoRepository.findById(id)

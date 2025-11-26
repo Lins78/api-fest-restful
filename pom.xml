@@ -8,7 +8,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.4.12</version>
+        <version>3.3.5</version>
         <relativePath/>
     </parent>
 
@@ -190,6 +190,26 @@
             <artifactId>datafaker</artifactId>
             <version>2.0.2</version>
             <scope>test</scope>
+        </dependency>
+
+        <!-- ========== CACHE DEPENDENCIES - ROTEIRO 10 ========== -->
+        <!-- Redis Cache (distributed cache) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+
+        <!-- Caffeine Cache (local cache) -->
+        <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
+        </dependency>
+
+        <!-- ========== CONTAINERIZATION DEPENDENCIES - ROTEIRO 10 ========== -->
+        <!-- Spring Boot Actuator Metrics for monitoring -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
         </dependency>
     </dependencies>
 

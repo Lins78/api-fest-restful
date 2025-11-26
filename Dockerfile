@@ -1,49 +1,48 @@
-# Dockerfile otimizado para Java 21
-# Multi-stage build para otimizar o tamanho da imagem
+# ===============================================================================
+# DOCKERFILE CORRIGIDO - API FEST RESTFUL
+# ===============================================================================
 
-# Estágio de build
-FROM eclipse-temurin:21-jdk-alpine AS builder
+# ========== BUILD STAGE ==========
+FROM amazoncorretto:21-alpine AS builder
 
-WORKDIR /app
+LABEL maintainer="API FEST Team"
+LABEL description="Spring Boot API Build Stage"
 
-# Copiar arquivos de configuração do Maven
+RUN apk add --no-cache curl tar bash maven
+
+WORKDIR /build
+
 COPY pom.xml .
-COPY mvnw .
+COPY mvnw mvnw.cmd ./
 COPY .mvn .mvn
 
-# Baixar dependências (para aproveitamento de cache)
-RUN ./mvnw dependency:go-offline -B
+RUN mvn dependency:go-offline -B -q || ./mvnw dependency:go-offline -B -q
 
-# Copiar código fonte
-COPY src ./src
+COPY src src
 
-# Compilar aplicação
-RUN ./mvnw clean package -DskipTests
+RUN mvn clean package -DskipTests -B -q || ./mvnw clean package -DskipTests -B -q
 
-# Estágio de runtime
-FROM eclipse-temurin:21-jre-alpine AS runtime
+# ========== PRODUCTION STAGE ==========
+FROM amazoncorretto:21-alpine AS production
 
-# Instalar dumb-init para signal handling
-RUN apk add --no-cache dumb-init
+LABEL stage="production"
 
-# Criar usuário não-root para segurança
-RUN addgroup -g 1001 -S appgroup && \
-    adduser -S appuser -u 1001 -G appgroup
+RUN apk add --no-cache dumb-init curl \
+    && addgroup -g 1001 appgroup \
+    && adduser -S appuser -u 1001 -G appgroup
 
 WORKDIR /app
+USER appuser:appgroup
 
-# Copiar JAR compilado do estágio anterior
-COPY --from=builder /app/target/*.jar app.jar
+COPY --from=builder --chown=appuser:appgroup /build/target/*.jar app.jar
 
-# Mudar para usuário não-root
-USER appuser
+ENV JVM_OPTS="-Xms256m -Xmx512m -XX:+UseG1GC -XX:+UseContainerSupport"
+ENV SPRING_PROFILES_ACTIVE="prod"
 
-# Expor porta
 EXPOSE 8080
 
-# Configurar JVM para Java 21 com otimizações
-ENV JAVA_OPTS="-XX:+UseZGC -XX:+UnlockExperimentalVMOptions -Xmx512m -Xms256m"
+HEALTHCHECK --interval=30s --timeout=3s --start-period=30s --retries=3 \
+    CMD curl -f http://localhost:8080/actuator/health || exit 1
 
-# Usar dumb-init para signal handling adequado
 ENTRYPOINT ["dumb-init", "--"]
-CMD ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
+CMD ["sh", "-c", "java $JVM_OPTS -jar app.jar"]

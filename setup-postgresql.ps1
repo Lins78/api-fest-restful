@@ -118,7 +118,7 @@ Write-Host ""
 Write-Host "🔍 Verificando se a aplicação está rodando..." -ForegroundColor Yellow
 
 try {
-    $response = Invoke-RestMethod -Uri "http://localhost:8080/api/v1/home" -TimeoutSec 5
+    Invoke-RestMethod -Uri "http://localhost:8080/api/v1/home" -TimeoutSec 5 | Out-Null
     Write-Host "✅ Aplicação está rodando!" -ForegroundColor Green
     Write-Host "🎯 Pronto para executar testes PostgreSQL!" -ForegroundColor Green
     Write-Host ""
